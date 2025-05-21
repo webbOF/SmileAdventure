@@ -12,7 +12,7 @@ Il sistema SmileAdventure è basato su un'architettura a microservizi che compre
 
 2. **Frontend Applications**:
    - Web Application React per genitori e professionisti
-   - Mobile Application React Native per i bambini
+   - Mobile Application  Unity, gioco per i bambini
 
 3. **Componente di Gioco**:
    - Unity Game integrato nell'applicazione mobile

@@ -90,7 +90,7 @@ SmileAdventure è un serious game progettato per supportare i bambini con diffic
 - **Backend**: FastAPI (Python) per i microservizi
 - **Database**: PostgreSQL
 - **Web Frontend**: React.js
-- **Mobile App**: React Native
+- **Mobile App**: Export Unity for Android
 - **Game Engine**: Unity
 - **Containerizzazione**: Docker, Docker Compose
 - **CI/CD**: GitHub Actions

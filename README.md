@@ -89,13 +89,6 @@ npm install
 npm start
 ```
 
-### Mobile App (React Native)
-
-```bash
-cd frontend/react-native-app
-npm install
-npx react-native start
-```
 
 ### Unity
 
