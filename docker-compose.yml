@@ -3,25 +3,25 @@ version: '3.8'
 services:
   api-gateway:
     build: ./API-GATEWAY
-    container_name: healthmatch-api-gateway
+    container_name: smileadventure-api-gateway
     ports:
       - "8000:8000"
     depends_on:
       - auth
-      - booking
-      - catalog
-      - payment
+      # - booking # Assuming booking, catalog, payment are not part of SmileAdventure
+      # - catalog
+      # - payment
       - notification
       - users
     environment:
       - AUTH_SERVICE_URL=http://auth-service:8001/api/v1
       - USERS_SERVICE_URL=http://users-service:8006/api/v1
-      - BOOKING_SERVICE_URL=http://booking-service:8002/api/v1
-      - CATALOG_SERVICE_URL=http://catalog-service:8003/api/v1
-      - PAYMENT_SERVICE_URL=http://payment-service:8005/api/v1
+      # - BOOKING_SERVICE_URL=http://booking-service:8002/api/v1
+      # - CATALOG_SERVICE_URL=http://catalog-service:8003/api/v1
+      # - PAYMENT_SERVICE_URL=http://payment-service:8005/api/v1
       - NOTIFICATION_SERVICE_URL=http://notification-service:8004/api/v1
     networks:
-      - healthmatch-network
+      - smileadventure-network
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/status"]
       interval: 30s
@@ -31,7 +31,7 @@ services:
 
   auth:
     build: ./Auth
-    container_name: healthmatch-auth-service
+    container_name: smileadventure-auth-service
     ports:
       - "8001:8001"
     environment:
@@ -39,7 +39,7 @@ services:
       - JWT_SECRET_KEY=your_production_secret_key
       - JWT_EXPIRE_MINUTES=30
     networks:
-      - healthmatch-network
+      - smileadventure-network
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8001/status"]
       interval: 30s
@@ -47,49 +47,49 @@ services:
       retries: 3
       start_period: 10s
 
-  booking:
-    build: ./Booking
-    container_name: healthmatch-booking-service
-    ports:
-      - "8002:8002"
-    environment:
-      - DATABASE_URL=sqlite:///./booking.db
-      - PAYMENT_SERVICE_URL=http://payment-service:8005/api/v1
-      - NOTIFICATION_SERVICE_URL=http://notification-service:8004/api/v1
-    networks:
-      - healthmatch-network
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8002/status"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 10s
+  # booking:
+  #   build: ./Booking
+  #   container_name: smileadventure-booking-service
+  #   ports:
+  #     - "8002:8002"
+  #   environment:
+  #     - DATABASE_URL=sqlite:///./booking.db
+  #     - PAYMENT_SERVICE_URL=http://payment-service:8005/api/v1
+  #     - NOTIFICATION_SERVICE_URL=http://notification-service:8004/api/v1
+  #   networks:
+  #     - smileadventure-network
+  #   healthcheck:
+  #     test: ["CMD", "curl", "-f", "http://localhost:8002/status"]
+  #     interval: 30s
+  #     timeout: 10s
+  #     retries: 3
+  #     start_period: 10s
 
-  catalog:
-    build: ./Catalog
-    container_name: healthmatch-catalog-service
-    ports:
-      - "8003:8003"
-    environment:
-      - DATABASE_URL=sqlite:///./catalog.db
-    networks:
-      - healthmatch-network
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8003/status"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 10s
+  # catalog:
+  #   build: ./Catalog
+  #   container_name: smileadventure-catalog-service
+  #   ports:
+  #     - "8003:8003"
+  #   environment:
+  #     - DATABASE_URL=sqlite:///./catalog.db
+  #   networks:
+  #     - smileadventure-network
+  #   healthcheck:
+  #     test: ["CMD", "curl", "-f", "http://localhost:8003/status"]
+  #     interval: 30s
+  #     timeout: 10s
+  #     retries: 3
+  #     start_period: 10s
 
   notification:
     build: ./Notification
-    container_name: healthmatch-notification-service
+    container_name: smileadventure-notification-service
     ports:
       - "8004:8004"
     environment:
       - DATABASE_URL=sqlite:///./notification.db
     networks:
-      - healthmatch-network
+      - smileadventure-network
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8004/status"]
       interval: 30s
@@ -97,34 +97,34 @@ services:
       retries: 3
       start_period: 10s
 
-  payment:
-    build: ./Payment
-    container_name: healthmatch-payment-service
-    ports:
-      - "8005:8005"
-    environment:
-      - DATABASE_URL=sqlite:///./payment.db
-      - STRIPE_SECRET_KEY=sk_test_51Qwl3g4bGuhP8JnHeiJ18EBTckWHYTSWsSJze09VsQEgRIfs5cC31kPVsavzGnokIQMlV8L5GmbATmn3CN9u3qjE00csdxrv2c  # Usa una chiave di test
-      - STRIPE_WEBHOOK_SECRET=whsec_test_webhook_secret_key  # Genera un webhook per test
-      - STRIPE_PUBLISHABLE_KEY=pk_test_51Qwl3g4bGuhP8JnHdmOoePEpNDmuQqc5N9iNOX2esXoc4vnBfxSTYqXHFreVOt0uU0vnsNb4rP56kUw0FYHbiYcN00fJYFxBga  # Per il frontend
-    networks:
-      - healthmatch-network
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8005/status"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 10s
+  # payment:
+  #   build: ./Payment
+  #   container_name: smileadventure-payment-service
+  #   ports:
+  #     - "8005:8005"
+  #   environment:
+  #     - DATABASE_URL=sqlite:///./payment.db
+  #     - STRIPE_SECRET_KEY=sk_test_your_stripe_secret_key # Replace with actual test key
+  #     - STRIPE_WEBHOOK_SECRET=whsec_test_your_webhook_secret # Replace with actual test key
+  #     - STRIPE_PUBLISHABLE_KEY=pk_test_your_stripe_publishable_key # Replace with actual test key
+  #   networks:
+  #     - smileadventure-network
+  #   healthcheck:
+  #     test: ["CMD", "curl", "-f", "http://localhost:8005/status"]
+  #     interval: 30s
+  #     timeout: 10s
+  #     retries: 3
+  #     start_period: 10s
 
   users:
     build: ./Users
-    container_name: healthmatch-users-service
+    container_name: smileadventure-users-service
     ports:
       - "8006:8006"
     environment:
       - DATABASE_URL=sqlite:///./user.db
     networks:
-      - healthmatch-network
+      - smileadventure-network
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8006/status"]
       interval: 30s
@@ -147,7 +147,7 @@ services:
       - /app/node_modules
       - ./docker-react:/app
     networks:
-      - healthmatch-network
+      - smileadventure-network
     depends_on:
       - api-gateway
 
@@ -161,11 +161,11 @@ services:
       - ./docker-react:/app
     command: ['npm', 'run', 'test']
     networks:
-      - healthmatch-network
+      - smileadventure-network
 
   er-diagrams:
     image: graphviz/graphviz:latest
-    container_name: healthmatch-er-diagrams
+    container_name: smileadventure-er-diagrams
     volumes:
       - ./:/app
       - ./docs/diagrams:/app/docs/diagrams
@@ -179,17 +179,17 @@ services:
         python3 -c 'from scripts.er_model import generate_diagrams; generate_diagrams()'
       "
     networks:
-      - healthmatch-network
+      - smileadventure-network
     depends_on:
       - auth
       - notification
-      - booking
-      - catalog
+      # - booking
+      # - catalog
       - users
 
   db-init:
     image: python:3.10-slim
-    container_name: healthmatch-db-init
+    container_name: smileadventure-db-init
     volumes:
       - ./:/app
     working_dir: /app
@@ -200,8 +200,8 @@ services:
         python scripts/seeds_gen.py
       "
     networks:
-      - healthmatch-network
+      - smileadventure-network
 
 networks:
-  healthmatch-network:
+  smileadventure-network:
     driver: bridge

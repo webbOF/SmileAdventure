@@ -76,7 +76,7 @@ const AppNavigator = () => {
         name="Games"
         component={GamesStackNavigator}
         options={{
-          title: 'Giochi',
+          title: 'Games',
         }}
       />
       <Tab.Screen

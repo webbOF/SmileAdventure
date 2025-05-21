@@ -41,9 +41,6 @@ public class GameManager : MonoBehaviour
     public event GameEvent OnGameOver;
     public event GameEvent OnLevelComplete;
 
-    // Mobile integration
-    private bool isReactNativeInitialized = false;
-
     private void Awake()
     {
         // Singleton pattern
@@ -80,10 +77,6 @@ public class GameManager : MonoBehaviour
             }
         }
 
-        // Listen for React Native messages
-        // This would be implemented with a plugin
-        ListenForReactNativeMessages();
-
         // Fire game start event
         OnGameStart?.Invoke();
     }
@@ -117,9 +110,6 @@ public class GameManager : MonoBehaviour
             gameOverMenu.SetActive(true);
         }
         OnGameOver?.Invoke();
-
-        // Send score to React Native
-        SendScoreToReactNative();
     }
 
     public void CompleteLevel()
@@ -127,9 +117,6 @@ public class GameManager : MonoBehaviour
         gameState.currentLevel++;
         OnLevelComplete?.Invoke();
         UpdateUI();
-
-        // Send progress to React Native
-        SendProgressToReactNative();
     }
 
     public void AddScore(int points)
@@ -149,39 +136,5 @@ public class GameManager : MonoBehaviour
         {
             levelText.text = "Level: " + gameState.currentLevel.ToString();
         }
-    }
-
-    // React Native communication methods
-    private void ListenForReactNativeMessages()
-    {
-        // This would be implemented with a plugin
-        // For example, with Unity Message system
-        isReactNativeInitialized = true;
-        Debug.Log("Listening for React Native messages");
-    }
-
-    private void SendScoreToReactNative()
-    {
-        if (isReactNativeInitialized)
-        {
-            // This would send the score data to React Native
-            Debug.Log("Sending score to React Native: " + gameState.totalScore);
-        }
-    }
-
-    private void SendProgressToReactNative()
-    {
-        if (isReactNativeInitialized)
-        {
-            // This would send the progress data to React Native
-            Debug.Log("Sending progress to React Native: Level " + gameState.currentLevel);
-        }
-    }
-
-    // Method to receive messages from React Native
-    public void OnMessageFromReactNative(string message)
-    {
-        Debug.Log("Message from React Native: " + message);
-        // Parse the message and take appropriate action
     }
 }
