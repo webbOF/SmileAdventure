@@ -10,8 +10,7 @@ def init_all_databases():
     os.makedirs("Users/data", exist_ok=True)
     os.makedirs("Auth/data", exist_ok=True)
     os.makedirs("Catalog/data", exist_ok=True)
-    os.makedirs("Booking/data", exist_ok=True)
-    os.makedirs("Notification/data", exist_ok=True)
+    # os.makedirs("Booking/data", exist_ok=True)
     
     # Users
     try:
@@ -44,23 +43,24 @@ def init_all_databases():
         print(f"❌ Errore nell'inizializzazione del database Catalog: {str(e)}")
     
     # Booking
-    try:
-        print("Inizializzazione database Booking...")
-        from Booking.src.db.session import engine
-        from Booking.src.models.booking_model import Base
-        Base.metadata.create_all(bind=engine)
-        print("✅ Database Booking inizializzato")
-    except Exception as e:
-        print(f"❌ Errore nell'inizializzazione del database Booking: {str(e)}")
+    # try:
+    #     print("Inizializzazione database Booking...")
+    #     from Booking.src.db.session import engine 
+    #     from Booking.src.models.booking_model import Base 
+    #     Base.metadata.create_all(bind=engine)
+    #     print("✅ Database Booking inizializzato")
+    # except Exception as e:
+    #     print(f"❌ Errore nell\'inizializzazione del database Booking: {str(e)}")
     
     # Notification
-    try:
-        print("Inizializzazione database Notification...")
-        from Notification.src.models.notification_model import Base, engine
-        Base.metadata.create_all(bind=engine)
-        print("✅ Database Notification inizializzato")
-    except Exception as e:
-        print(f"❌ Errore nell'inizializzazione del database Notification: {str(e)}")
+    # try:
+    #     print("Inizializzazione database Notification...")
+    #     from Notification.src.models.notification_model import Base, engine
+    #     Base.metadata.create_all(bind=engine)
+    #     print("✅ Database Notification inizializzato")
+    # except Exception as e:
+    #     print(f"❌ Errore nell'inizializzazione del database Notification: {str(e)}")
+    #     # exit(1) # Non bloccare l'intero script se un db fallisce
 
 if __name__ == "__main__":
     init_all_databases()

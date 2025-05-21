@@ -26,7 +26,6 @@ services:
       - BOOKING_SERVICE_URL=http://booking:8002
       - CATALOG_SERVICE_URL=http://catalog:8003
       - USERS_SERVICE_URL=http://users:8004
-      - NOTIFICATION_SERVICE_URL=http://notification:8005
     networks:
       - healthmatch-network
     volumes:
@@ -88,10 +87,3 @@ services:
       - healthmatch-network
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8004/status"]
-
-  # Notification Service
-  notification:
-    build:
-      context: ./Notification
-    environment:
-      - DATABASE_URL=sqlite:///./data/notification.db

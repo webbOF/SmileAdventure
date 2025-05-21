@@ -7,7 +7,7 @@ sys.path.insert(0, os.path.abspath('.'))
 def init_all_databases():
     """Inizializza tutti i database creando le tabelle necessarie"""
     # Crea le directory per i database SQLite con percorsi assoluti
-    for service in ["Users", "Auth", "Catalog", "Booking", "Notification"]:
+    for service in ["Users", "Auth", "Catalog"]:
         data_dir = os.path.join(os.path.abspath('.'), service, "data")
         os.makedirs(data_dir, exist_ok=True)
         print(f"✅ Directory {data_dir} creata o verificata")
@@ -42,32 +42,6 @@ def init_all_databases():
     except Exception as e:
         print(f"❌ Errore nell'inizializzazione del database Catalog: {str(e)}")
     
-    # Booking
-    try:
-        print("Inizializzazione database Booking...")
-        from Booking.src.db.session import engine
-        from Booking.src.models.booking_model import Base
-        Base.metadata.create_all(bind=engine)
-        print("✅ Database Booking inizializzato")
-    except Exception as e:
-        print(f"❌ Errore nell'inizializzazione del database Booking: {str(e)}")
-    
-    # Notification - nuovo metodo di inizializzazione
-    try:
-        print("Creazione directory per database Notification...")
-        # Directory per il database
-        notification_data_dir = os.path.join(os.path.abspath('.'), "Notification", "data")
-        os.makedirs(notification_data_dir, exist_ok=True)
-        print(f"Directory creata: {notification_data_dir}")
-        
-        # Importa e crea le tabelle
-        print("Inizializzazione database Notification...")
-        from Notification.src.models.notification_model import create_tables
-        create_tables()
-        print("✅ Database Notification inizializzato")
-    except Exception as e:
-        print(f"❌ Errore nell'inizializzazione del database Notification: {str(e)}")
-
 if __name__ == "__main__":
     init_all_databases()
     print("\nTutti i database sono stati inizializzati.")

@@ -4,29 +4,30 @@ Sistema interattivo per aiutare i bambini nella regolazione delle emozioni, con 
 
 ## Struttura del Progetto
 
-Il progetto è strutturato come segue:
-
 ```
-smile-adventure-project/
-├── .vscode/                      # Impostazioni specifiche di VS Code (opzionale)
-├── docs/                         # Documentazione del progetto
-│   ├── architecture.md
-│   ├── requirements_guide.md
-│   └── api_contracts/
+SeriousGame/
+├── docker-compose.yml          # Configurazione Docker Compose per l'intero stack
+├── README.md                   # Questo file
+├── docs/                       # Documentazione del progetto
+│   ├── architecture.md         # Dettagli sull'architettura del sistema
+│   ├── requirements_guide.md   # Guida ai requisiti funzionali e non funzionali
+│   └── api_contracts/          # Contratti API (OpenAPI/Swagger)
 │       ├── auth_api.yaml
 │       └── users_api.yaml
-├── microservices/                # Microservizi backend
-│   ├── Users/                    # Gestione utenti (FastAPI)
-│   ├── Reports/                  # Gestione report (FastAPI)
-│   ├── Auth/                     # Gestione autenticazione (FastAPI)
-│   └── API-GATEWAY/              # API Gateway
-├── frontend/                     # Applicazioni client
-│   ├── docker-react/             # Web App per genitori/professionisti (React)
-│   └── react-native-app/         # App Mobile per bambini
-├── unity-smile-adventure/        # Progetto Unity del serious game
-├── scripts/                      # Script di utilità e setup
-├── docker-compose.yml            # Docker Compose per orchestrare i servizi
-└── README.md                     # Questo file
+├── frontend/                   # Codice sorgente per le interfacce utente
+│   ├── docker-react/           # Web App React per utenti e professionisti
+│   └── unity-smile-adventure/  # Gioco Android per bambini sviluppato in Unity
+├── microservices/              # Backend microservizi
+│   ├── API-GATEWAY/            # API Gateway (es. Kong, Ocelot, o custom Flask/FastAPI)
+│   ├── Auth/                   # Servizio di Autenticazione
+│   ├── Users/                  # Servizio Utenti
+│   └── Reports/                # Servizio Reportistica (da definire)
+├── scripts/                    # Script utili (inizializzazione DB, generazione dati, etc.)
+│   ├── db_init.py              # Script per inizializzare i database
+│   ├── seeds_gen.py            # Script per generare dati di seed
+│   ├── er_model.py             # Script per il modello di riconoscimento delle emozioni (da definire)
+│   └── requirements.txt        # Dipendenze Python per gli script
+└── ...                         # Altri file e cartelle di configurazione (es. .env, config)
 ```
 
 ## Getting Started

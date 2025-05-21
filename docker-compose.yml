@@ -8,18 +8,10 @@ services:
       - "8000:8000"
     depends_on:
       - auth
-      # - booking # Assuming booking, catalog, payment are not part of SmileAdventure
-      # - catalog
-      # - payment
-      - notification
       - users
     environment:
       - AUTH_SERVICE_URL=http://auth-service:8001/api/v1
       - USERS_SERVICE_URL=http://users-service:8006/api/v1
-      # - BOOKING_SERVICE_URL=http://booking-service:8002/api/v1
-      # - CATALOG_SERVICE_URL=http://catalog-service:8003/api/v1
-      # - PAYMENT_SERVICE_URL=http://payment-service:8005/api/v1
-      - NOTIFICATION_SERVICE_URL=http://notification-service:8004/api/v1
     networks:
       - smileadventure-network
     healthcheck:
@@ -46,75 +38,6 @@ services:
       timeout: 10s
       retries: 3
       start_period: 10s
-
-  # booking:
-  #   build: ./Booking
-  #   container_name: smileadventure-booking-service
-  #   ports:
-  #     - "8002:8002"
-  #   environment:
-  #     - DATABASE_URL=sqlite:///./booking.db
-  #     - PAYMENT_SERVICE_URL=http://payment-service:8005/api/v1
-  #     - NOTIFICATION_SERVICE_URL=http://notification-service:8004/api/v1
-  #   networks:
-  #     - smileadventure-network
-  #   healthcheck:
-  #     test: ["CMD", "curl", "-f", "http://localhost:8002/status"]
-  #     interval: 30s
-  #     timeout: 10s
-  #     retries: 3
-  #     start_period: 10s
-
-  # catalog:
-  #   build: ./Catalog
-  #   container_name: smileadventure-catalog-service
-  #   ports:
-  #     - "8003:8003"
-  #   environment:
-  #     - DATABASE_URL=sqlite:///./catalog.db
-  #   networks:
-  #     - smileadventure-network
-  #   healthcheck:
-  #     test: ["CMD", "curl", "-f", "http://localhost:8003/status"]
-  #     interval: 30s
-  #     timeout: 10s
-  #     retries: 3
-  #     start_period: 10s
-
-  notification:
-    build: ./Notification
-    container_name: smileadventure-notification-service
-    ports:
-      - "8004:8004"
-    environment:
-      - DATABASE_URL=sqlite:///./notification.db
-    networks:
-      - smileadventure-network
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8004/status"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 10s
-
-  # payment:
-  #   build: ./Payment
-  #   container_name: smileadventure-payment-service
-  #   ports:
-  #     - "8005:8005"
-  #   environment:
-  #     - DATABASE_URL=sqlite:///./payment.db
-  #     - STRIPE_SECRET_KEY=sk_test_your_stripe_secret_key # Replace with actual test key
-  #     - STRIPE_WEBHOOK_SECRET=whsec_test_your_webhook_secret # Replace with actual test key
-  #     - STRIPE_PUBLISHABLE_KEY=pk_test_your_stripe_publishable_key # Replace with actual test key
-  #   networks:
-  #     - smileadventure-network
-  #   healthcheck:
-  #     test: ["CMD", "curl", "-f", "http://localhost:8005/status"]
-  #     interval: 30s
-  #     timeout: 10s
-  #     retries: 3
-  #     start_period: 10s
 
   users:
     build: ./Users
@@ -182,9 +105,6 @@ services:
       - smileadventure-network
     depends_on:
       - auth
-      - notification
-      # - booking
-      # - catalog
       - users
 
   db-init:
