@@ -1,7 +1,6 @@
 # SmileAdventure - Serious Game Project
 
-Sistema interattivo per aiutare i bambini nella regolazione delle emozioni, con focus particolare sulla rabbia.
-
+Sistema interattivo per aiutare i bambini 
 ## Struttura del Progetto
 
 ```
