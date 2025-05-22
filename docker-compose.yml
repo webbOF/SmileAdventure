@@ -9,9 +9,11 @@ services:
     depends_on:
       - auth
       - users
+      - reports # Add dependency if startup order matters, e.g. for health checks
     environment:
       - AUTH_SERVICE_URL=http://auth-service:8001/api/v1
       - USERS_SERVICE_URL=http://users-service:8006/api/v1
+      - REPORTS_SERVICE_URL=http://reports-service:8007/api/v1 # Added Reports service URL
     networks:
       - smileadventure-network
     healthcheck:
@@ -54,6 +56,25 @@ services:
       timeout: 10s
       retries: 3
       start_period: 10s
+
+  reports:
+    build: ./Reports  # Assuming the Dockerfile is in ./Reports
+    container_name: smileadventure-reports-service
+    ports:
+      - "8007:8007" # Expose port if needed for direct access, or just for gateway
+    environment:
+      - REPORTS_DATABASE_URL=sqlite:///./reports.db # Or PostgreSQL connection string
+      # Add any other necessary environment variables for the Reports service
+    networks:
+      - smileadventure-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8007/status"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+    # volumes: # Add volumes if you need to persist data, e.g., for SQLite
+      # - ./Reports/data:/app/data # Example for persisting SQLite DB
 
   web:
     stdin_open: true

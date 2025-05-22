@@ -1,12 +1,14 @@
+import os
+
+import uvicorn
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from .routes import auth_routes
-import os
-import uvicorn
 from src.db.session import Base, engine
 
+from .routes import auth_routes
+
 app = FastAPI(
-    title="HealthMatch Auth Service",
+    title="SmileAdventure Auth Service",
     description="Microservizio per l'autenticazione degli utenti",
     version="1.0.0"
 )
@@ -29,11 +31,6 @@ Base.metadata.create_all(bind=engine)
 @app.get("/status")
 async def status():
     """Endpoint per il health check."""
-    return {"status": "online", "service": "auth"}
-
-@app.get("/api/v1/status")
-async def api_status():
-    """Endpoint aggiuntivo per il health check con il prefisso API."""
     return {"status": "online", "service": "auth"}
 
 if __name__ == "__main__":

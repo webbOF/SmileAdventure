@@ -1,6 +1,7 @@
-from fastapi import APIRouter, HTTPException, Depends
+from typing import Any, Dict
+
 import httpx
-from typing import Dict, Any
+from fastapi import APIRouter, Depends, HTTPException
 
 router = APIRouter()
 
@@ -14,8 +15,13 @@ async def login(user_data: Dict[str, Any]):
         async with httpx.AsyncClient() as client:
             response = await client.post(f"{AUTH_SERVICE_URL}/auth/login", json=user_data)
             
-            if response.status_code != 200:
-                raise HTTPException(status_code=response.status_code, detail=response.json())
+            if response.status_code != 200: # Generalmente il login di successo è 200
+                # Prova a parsare il JSON per un messaggio di errore più specifico
+                try:
+                    detail = response.json().get("detail", response.text)
+                except Exception:
+                    detail = response.text
+                raise HTTPException(status_code=response.status_code, detail=detail)
                 
             return response.json()
     except httpx.RequestError:
@@ -28,36 +34,51 @@ async def register(user_data: Dict[str, Any]):
         async with httpx.AsyncClient() as client:
             response = await client.post(f"{AUTH_SERVICE_URL}/auth/register", json=user_data)
             
-            if response.status_code != 200:
-                raise HTTPException(status_code=response.status_code, detail=response.json())
+            # La registrazione di successo potrebbe restituire 201 Created
+            if response.status_code not in [200, 201]: 
+                try:
+                    detail = response.json().get("detail", response.text)
+                except Exception:
+                    detail = response.text
+                raise HTTPException(status_code=response.status_code, detail=detail)
                 
             return response.json()
     except httpx.RequestError:
         raise HTTPException(status_code=503, detail="Servizio di autenticazione non disponibile")
 
 @router.post("/verify-token")
-async def verify_token(token_data: Dict[str, Any]):
+async def verify_token(token_data: Dict[str, Any]): # Il body dovrebbe contenere {"token": "your_jwt_token"}
     """Verifica un token JWT."""
     try:
         async with httpx.AsyncClient() as client:
-            response = await client.post(f"{AUTH_SERVICE_URL}/auth/verify", json=token_data)
+            # Assicurati che l'endpoint nel servizio Auth sia /auth/verify e accetti POST con JSON
+            response = await client.post(f"{AUTH_SERVICE_URL}/auth/verify", json=token_data) 
             
             if response.status_code != 200:
-                raise HTTPException(status_code=response.status_code, detail=response.json())
+                try:
+                    detail = response.json().get("detail", response.text)
+                except Exception:
+                    detail = response.text
+                raise HTTPException(status_code=response.status_code, detail=detail)
                 
             return response.json()
     except httpx.RequestError:
         raise HTTPException(status_code=503, detail="Servizio di autenticazione non disponibile")
 
 @router.post("/refresh-token")
-async def refresh_token(token_data: Dict[str, Any]):
+async def refresh_token(token_data: Dict[str, Any]): # Il body dovrebbe contenere {"token": "your_refresh_token"}
     """Rinnova un token JWT."""
     try:
         async with httpx.AsyncClient() as client:
+            # Assicurati che l'endpoint nel servizio Auth sia /auth/refresh e accetti POST con JSON
             response = await client.post(f"{AUTH_SERVICE_URL}/auth/refresh", json=token_data)
             
             if response.status_code != 200:
-                raise HTTPException(status_code=response.status_code, detail=response.json())
+                try:
+                    detail = response.json().get("detail", response.text)
+                except Exception:
+                    detail = response.text
+                raise HTTPException(status_code=response.status_code, detail=detail)
                 
             return response.json()
     except httpx.RequestError:

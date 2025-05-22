@@ -1,11 +1,21 @@
-from sqlalchemy import Column, Integer, String, Boolean, Text, Float, Table, ForeignKey, DateTime
+from datetime import datetime
+from enum import Enum
+from typing import List, Optional
+
+from pydantic import BaseModel, EmailStr, Field
+from sqlalchemy import (Boolean, Column, DateTime, Float, ForeignKey, Integer,
+                        String, Table, Text)
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship
-from datetime import datetime
-from pydantic import BaseModel, EmailStr
-from typing import Optional, List
 
 Base = declarative_base()
+
+# Enum per UserType
+class UserType(str, Enum):
+    child = "child"
+    parent = "parent"
+    professional = "professional"
+    admin = "admin"
 
 # Tabella di associazione per la relazione many-to-many tra utenti e specialità
 user_specialty_association = Table(
@@ -70,15 +80,15 @@ class SpecialtyInDB(SpecialtyBase):
     id: int
     
     class Config:
-        from_attributes = True  # Aggiornato da orm_mode = True
+        from_attributes = True
 
 class UserBase(BaseModel):
     email: EmailStr
     name: str
     surname: str
-    user_type: str
-    gender: Optional[str] = None
-    birth_date: Optional[str] = None
+    user_type: UserType 
+    gender: Optional[str] = Field(None, pattern="^[MFU]$") # M, F, Unknown/Unspecified
+    birth_date: Optional[str] = None # Considerare Optional[date] con Pydantic v2
     phone: Optional[str] = None
     address: Optional[str] = None
     city: Optional[str] = None
@@ -86,17 +96,18 @@ class UserBase(BaseModel):
     country: Optional[str] = "Italia"
 
 class UserCreate(UserBase):
-    pass
+    password: str
 
 class ProfessionalCreate(UserBase):
+    password: str # Necessaria per la creazione dell'utente base
     bio: Optional[str] = None
-    experience_years: Optional[int] = None
+    experience_years: Optional[int] = Field(None, ge=0)
     specialties: List[int] = []
 
 class UserUpdate(BaseModel):
     name: Optional[str] = None
     surname: Optional[str] = None
-    gender: Optional[str] = None
+    gender: Optional[str] = Field(None, pattern="^[MFU]$")
     birth_date: Optional[str] = None
     phone: Optional[str] = None
     address: Optional[str] = None
@@ -107,7 +118,7 @@ class UserUpdate(BaseModel):
 
 class ProfessionalUpdate(UserUpdate):
     bio: Optional[str] = None
-    experience_years: Optional[int] = None
+    experience_years: Optional[int] = Field(None, ge=0)
     specialties: Optional[List[int]] = None
 
 class UserInDB(UserBase):
@@ -119,14 +130,14 @@ class UserInDB(UserBase):
     profile_image: Optional[str] = None
     
     class Config:
-        from_attributes = True  # Aggiornato da orm_mode = True
+        from_attributes = True
 
 class ProfessionalInDB(UserInDB):
     bio: Optional[str] = None
-    experience_years: Optional[int] = None
+    experience_years: Optional[int] = Field(None, ge=0)
     rating: Optional[float] = None
     review_count: Optional[int] = None
     specialties: List[SpecialtyInDB] = []
     
     class Config:
-        from_attributes = True  # Aggiornato da orm_mode = True
+        from_attributes = True

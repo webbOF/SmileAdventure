@@ -1,14 +1,16 @@
+import os
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from .routes.user_routes import router as user_router
-from .models.user_model import Base
+
 from .db.session import engine
-import os
+from .models.user_model import Base
+from .routes.user_routes import router as user_router
 
 # Inizializzazione dell'app FastAPI
 app = FastAPI(
-    title="HealthMatch Users Service",
-    description="Servizio di gestione utenti per HealthMatch",
+    title="SmileAdventure Users Service",
+    description="Servizio di gestione utenti per SmileAdventure",
     version="1.0.0"
 )
 
@@ -37,6 +39,7 @@ def status():
 async def startup_db_client():
     """Inizializza dati di base nel database se necessario."""
     from sqlalchemy.orm import Session
+
     from .db.session import SessionLocal
     from .models.user_model import Specialty
     from .services import user_service

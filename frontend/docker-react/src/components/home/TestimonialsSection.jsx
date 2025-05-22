@@ -2,9 +2,9 @@ import React from 'react';
 
 const TestimonialsSection = () => {
   const testimonials = [
-    {text: "Ho trovato subito uno specialista disponibile per un'urgenza. Servizio eccellente!", name: "Maria G."},
-    {text: "La prenotazione è stata semplice e veloce. Grazie a HealthMatch ho risolto il mio problema in pochi giorni.", name: "Luca B."},
-    {text: "Un modo davvero comodo per gestire la salute della mia famiglia. Consigliatissimo!", name: "Francesca M."}
+    { text: "Ho trovato subito uno specialista disponibile per un'urgenza. Servizio eccellente!", name: "Maria G." },
+    { text: "La prenotazione è stata semplice e veloce. Grazie a SmileAdventure ho risolto il mio problema in pochi giorni.", name: "Luca B." },
+    { text: "Un modo davvero comodo per gestire la salute della mia famiglia. Consigliatissimo!", name: "Francesca M." }
   ];
 
   return (

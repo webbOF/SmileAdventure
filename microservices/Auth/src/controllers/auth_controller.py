@@ -2,13 +2,9 @@
 # Questo file corregge le incoerenze tra il controller e il servizio di autenticazione
 
 from fastapi import APIRouter, HTTPException
-from src.services.auth_service import (
-    authenticate_user,
-    register_user,
-    verify_token,
-    refresh_token,
-)
 from pydantic import BaseModel
+from src.services.auth_service import (authenticate_user, refresh_token,
+                                       register_user, verify_token)
 
 # Creazione del router
 router = APIRouter()
@@ -59,7 +55,7 @@ def verify(token_data: TokenSchema):
     """
     result = verify_token(token_data.token)
     if result["status"] == "invalid":
-        raise HTTPException(status_code=401, detail="Invalid token")
+        raise HTTPException(status_code=401, detail=result.get("message", "Invalid token"))
     return result
 
 # Rotta per il refresh del token
