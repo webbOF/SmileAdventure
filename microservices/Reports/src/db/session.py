@@ -4,18 +4,17 @@ from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 
-# Percorso assoluto per il database
-base_dir = os.path.abspath(os.path.dirname(os.path.dirname(os.path.dirname(__file__)))) # microservices/Reports/
-data_dir = os.path.join(base_dir, "data") # microservices/Reports/data/
-os.makedirs(data_dir, exist_ok=True)
-db_path = os.path.join(data_dir, "reports.db")
+# URL del database letto dalla variabile d'ambiente
+# Default a una stringa di connessione PostgreSQL locale se non specificata (per sviluppo locale senza Docker)
+# La variabile d'ambiente usata nel docker-compose.yml è REPORTS_DATABASE_URL
+DATABASE_URL = os.getenv("REPORTS_DATABASE_URL")
 
-# URL del database
-DATABASE_URL = os.getenv("REPORTS_DATABASE_URL", f"sqlite:///{db_path}")
+if not DATABASE_URL:
+    raise ValueError("La variabile d'ambiente REPORTS_DATABASE_URL non è impostata.")
 
 # Creazione del motore di connessione al database
-# L'argomento connect_args={"check_same_thread": False} è specifico per SQLite
-engine = create_engine(DATABASE_URL, connect_args={"check_same_thread": False})
+# Rimosso connect_args={"check_same_thread": False} che è specifico per SQLite
+engine = create_engine(DATABASE_URL)
 
 # Creazione della sessione del database
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)

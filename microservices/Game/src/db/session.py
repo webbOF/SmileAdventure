@@ -4,20 +4,19 @@ from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 
-# URL del database letto dalla variabile d'ambiente
-# Default a una stringa di connessione PostgreSQL locale se non specificata (per sviluppo locale senza Docker)
-DATABASE_URL = os.getenv("DATABASE_URL")
+# Percorso assoluto per il database
+base_dir = os.path.abspath(os.path.dirname(os.path.dirname(os.path.dirname(__file__))))
+data_dir = os.path.join(base_dir, "data")
+os.makedirs(data_dir, exist_ok=True)
+db_path = os.path.join(data_dir, "game.db")
 
-if not DATABASE_URL:
-    raise ValueError("La variabile d'ambiente DATABASE_URL non è impostata.")
+# URL del database
+DATABASE_URL = os.getenv("DATABASE_URL", f"sqlite:///{db_path}")
 
 # Creazione del motore di connessione al database
-# Rimosso connect_args={"check_same_thread": False} che è specifico per SQLite
-engine = create_engine(DATABASE_URL)
-
+engine = create_engine(DATABASE_URL, connect_args={"check_same_thread": False})
 # Creazione della sessione del database
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
-
 # Creazione della base per la dichiarazione delle tabelle
 Base = declarative_base()
 

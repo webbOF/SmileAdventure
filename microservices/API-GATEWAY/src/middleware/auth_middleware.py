@@ -1,7 +1,8 @@
+from typing import Any, Dict
+
+import httpx
 from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
-import httpx
-from typing import Dict, Any
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="auth/login")
 AUTH_SERVICE_URL = "http://auth-service:8001/api/v1"

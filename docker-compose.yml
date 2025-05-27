@@ -9,11 +9,13 @@ services:
     depends_on:
       - auth
       - users
-      - reports # Add dependency if startup order matters, e.g. for health checks
+      - reports # Ensured reports service is a dependency
+      - postgres-db # Added postgres-db as a dependency for the gateway to wait for all backend services
     environment:
       - AUTH_SERVICE_URL=http://auth-service:8001/api/v1
       - USERS_SERVICE_URL=http://users-service:8006/api/v1
-      - REPORTS_SERVICE_URL=http://reports-service:8007/api/v1 # Added Reports service URL
+      - REPORTS_SERVICE_URL=http://reports-service:8007/api/v1
+      # La JWT_SECRET_KEY non è usata direttamente qui, ma nel servizio Auth
     networks:
       - smileadventure-network
     healthcheck:
@@ -28,9 +30,12 @@ services:
     container_name: smileadventure-auth-service
     ports:
       - "8001:8001"
+    depends_on:
+      - postgres-db
     environment:
-      - DATABASE_URL=sqlite:///./auth.db
-      - JWT_SECRET_KEY=your_production_secret_key
+      # DATABASE_URL costruita usando le variabili dal file .env
+      - DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres-db:5432/${POSTGRES_DB}
+      - JWT_SECRET_KEY=${JWT_SECRET_KEY} # Legge dalla variabile definita nel .env
       - JWT_EXPIRE_MINUTES=30
     networks:
       - smileadventure-network
@@ -46,8 +51,11 @@ services:
     container_name: smileadventure-users-service
     ports:
       - "8006:8006"
+    depends_on:
+      - postgres-db
     environment:
-      - DATABASE_URL=sqlite:///./user.db
+      # DATABASE_URL costruita usando le variabili dal file .env
+      - DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres-db:5432/${POSTGRES_DB}
     networks:
       - smileadventure-network
     healthcheck:
@@ -58,13 +66,15 @@ services:
       start_period: 10s
 
   reports:
-    build: ./Reports  # Assuming the Dockerfile is in ./Reports
+    build: ./Reports
     container_name: smileadventure-reports-service
     ports:
-      - "8007:8007" # Expose port if needed for direct access, or just for gateway
+      - "8007:8007"
+    depends_on:
+      - postgres-db
     environment:
-      - REPORTS_DATABASE_URL=sqlite:///./reports.db # Or PostgreSQL connection string
-      # Add any other necessary environment variables for the Reports service
+      # REPORTS_DATABASE_URL costruita usando le variabili dal file .env
+      - REPORTS_DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres-db:5432/${POSTGRES_DB}
     networks:
       - smileadventure-network
     healthcheck:
@@ -73,15 +83,35 @@ services:
       timeout: 10s
       retries: 3
       start_period: 10s
-    # volumes: # Add volumes if you need to persist data, e.g., for SQLite
-      # - ./Reports/data:/app/data # Example for persisting SQLite DB
+    # volumes: # Removed SQLite volume, data will be in postgres-db
+      # - ./Reports/data:/app/data 
+
+  postgres-db:
+    image: postgres:15-alpine
+    container_name: smileadventure-postgres-db
+    environment:
+      - POSTGRES_USER=${POSTGRES_USER} # Legge dal .env
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD} # Legge dal .env
+      - POSTGRES_DB=${POSTGRES_DB} # Legge dal .env
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports: # Optional: expose port for direct access/debugging
+      - "5432:5432" 
+    networks:
+      - smileadventure-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U smileadventureuser -d smileadventure -q"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s # Give it some time to initialize
+    restart: unless-stopped
 
   web:
     stdin_open: true
     environment:
       - CHOKIDAR_USEPOLLING=true
       - REACT_APP_API_URL=http://localhost:8000/api/v1
-      - REACT_APP_STRIPE_PUBLIC_KEY=pk_test_51Qwl3g4bGuhP8JnHdmOoePEpNDmuQqc5N9iNOX2esXoc4vnBfxSTYqXHFreVOt0uU0vnsNb4rP56kUw0FYHbiYcN00fJYFxBga
     build:
       context: ./docker-react
       dockerfile: Dockerfile.dev
@@ -125,8 +155,9 @@ services:
     networks:
       - smileadventure-network
     depends_on:
-      - auth
-      - users
+      - postgres-db # ER diagrams should wait for the DB to be available
+      # auth and users services are not direct dependencies for diagram generation from models
+      # but the models they use will now point to PostgreSQL
 
   db-init:
     image: python:3.10-slim
@@ -134,15 +165,23 @@ services:
     volumes:
       - ./:/app
     working_dir: /app
+    environment: # Passa le credenziali del DB anche a db-init se necessario per gli script
+      - DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres-db:5432/${POSTGRES_DB}
+      - PYTHONPATH=/app/microservices # Aggiunto PYTHONPATH per risolvere gli import
     command: >
       sh -c "
-        pip install sqlalchemy &&
+        pip install sqlalchemy psycopg2-binary && # Added psycopg2-binary for PostgreSQL
         python scripts/db_init.py &&
         python scripts/seeds_gen.py
       "
     networks:
       - smileadventure-network
+    depends_on: # db-init should wait for postgres-db
+      - postgres-db
 
 networks:
   smileadventure-network:
     driver: bridge
+
+volumes: # Added named volume for PostgreSQL data
+  postgres_data:
