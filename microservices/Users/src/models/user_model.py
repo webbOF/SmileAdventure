@@ -30,6 +30,7 @@ class User(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     email = Column(String, unique=True, index=True, nullable=False)
+    hashed_password = Column(String, nullable=False)
     user_type = Column(String, nullable=False)  # 'client' o 'professional'
     name = Column(String, nullable=False)
     surname = Column(String, nullable=False)

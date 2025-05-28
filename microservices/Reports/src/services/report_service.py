@@ -5,11 +5,12 @@ from typing import Any, Dict, List, Optional
 from sqlalchemy import func  # Added for aggregate functions like COUNT, AVG
 from sqlalchemy.orm import Session
 
-from ..models.report_model import \
-    EmotionPattern  # GameSessionData might be used by API layer
-from ..models.report_model import GameSession as GameSessionModel
-from ..models.report_model import (  # GameSessionData might be used by API layer
-    GameSessionData, ReportSummary)
+from ..models.report_model import (
+    EmotionPattern,
+    GameSession as GameSessionModel,
+    GameSessionData,
+    ReportSummary
+)
 
 
 def save_game_session(db: Session, game_data: GameSessionData) -> GameSessionModel:

@@ -1,28 +1,26 @@
 from typing import Any, Dict, List
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, HTTPException, Depends
+from sqlalchemy.orm import Session
 
-from ..models.report_model import (EmotionPattern, GameSessionData,
+from ..models.simple_models import (EmotionPattern, GameSessionData,
                                    ReportSummary)
-# from sqlalchemy.orm import Session # If using SQLAlchemy
-# from ..db.session import get_db # If using SQLAlchemy
-from ..services import report_service
+from ..services import temp_service as report_service
+from ..db.session import get_db
 
 router = APIRouter()
 
 @router.post("/game-session", status_code=201, response_model=Dict[str, Any])
 async def submit_game_session_data(
     session_data: GameSessionData,
-    # db: Session = Depends(get_db) # If using SQLAlchemy
+    db: Session = Depends(get_db)
 ):
     """
     Receive and store data from a completed game session.
     """
     try:
-        # result = await report_service.save_game_session(db, session_data)
-        # Placeholder service call:
-        result = await report_service.save_game_session_placeholder(session_data)
-        return result
+        result = report_service.save_game_session(db, session_data)
+        return {"message": "Game session saved successfully", "session_id": result["id"]}
     except Exception as e:
         # Log the exception e
         raise HTTPException(status_code=500, detail=f"Failed to process game session data: {str(e)}")
@@ -30,15 +28,13 @@ async def submit_game_session_data(
 @router.get("/child/{child_id}/summary", response_model=ReportSummary)
 async def get_child_progress_summary(
     child_id: int,
-    # db: Session = Depends(get_db) # If using SQLAlchemy
+    db: Session = Depends(get_db)
 ):
     """
     Get a summary of a child's progress and overall emotional state.
     """
     try:
-        # summary = await report_service.generate_child_summary(db, child_id)
-        # Placeholder service call:
-        summary = await report_service.generate_child_summary_placeholder(child_id)
+        summary = report_service.generate_child_summary(db, child_id)
         if not summary:
             raise HTTPException(status_code=404, detail="Summary not found for this child.")
         return summary
@@ -51,15 +47,13 @@ async def get_child_progress_summary(
 @router.get("/child/{child_id}/emotion-patterns", response_model=List[EmotionPattern])
 async def get_child_emotion_patterns(
     child_id: int,
-    # db: Session = Depends(get_db) # If using SQLAlchemy
+    db: Session = Depends(get_db)
 ):
     """
     Analyze and retrieve emotional patterns for a child based on game sessions.
     """
     try:
-        # patterns = await report_service.analyze_emotion_patterns(db, child_id)
-        # Placeholder service call:
-        patterns = await report_service.analyze_emotion_patterns_placeholder(child_id)
+        patterns = report_service.analyze_emotion_patterns(db, child_id)
         if not patterns:
             # Return empty list if no patterns, or 404 if child has no data at all
             return [] 

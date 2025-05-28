@@ -9,12 +9,11 @@ from typing import List, Optional
 from passlib.context import CryptContext
 from sqlalchemy import func as sqlalchemy_func  # Renamed to avoid conflict
 from sqlalchemy.orm import Session, joinedload
-
 # Assuming schemas are in user_model.py as per previous steps
-from ..models.user_model import (ProfessionalCreate, ProfessionalUpdate,
-                                 Specialty, SpecialtyCreate, SpecialtyUpdate,
-                                 User, UserCreate, UserType, UserUpdate,
-                                 user_specialty_association)
+from src.models.user_model import (ProfessionalCreate, ProfessionalUpdate,
+                                   Specialty, SpecialtyCreate, SpecialtyUpdate,
+                                   User, UserCreate, UserType, UserUpdate,
+                                   user_specialty_association)
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
@@ -115,6 +114,13 @@ def get_professionals(
         
     # Eager load specialties to avoid N+1 queries when accessing them
     return query.options(joinedload(User.specialties)).offset(skip).limit(limit).all()
+
+def get_professional(db: Session, professional_id: int) -> Optional[User]:
+    """Recupera un professionista specifico per ID."""
+    return db.query(User).filter(
+        User.id == professional_id, 
+        User.user_type == UserType.professional
+    ).options(joinedload(User.specialties)).first()
 
 def update_user(db: Session, user_id: int, user_data: UserUpdate) -> Optional[User]:
     db_user = get_user(db, user_id)

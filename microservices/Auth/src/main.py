@@ -5,7 +5,9 @@ from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from src.db.session import Base, engine
 
-from .routes import auth_routes
+from .controllers import auth_controller
+# Import all models to ensure they're registered with SQLAlchemy
+from .models import User
 
 app = FastAPI(
     title="SmileAdventure Auth Service",
@@ -23,7 +25,7 @@ app.add_middleware(
 )
 
 # Includi i router delle API
-app.include_router(auth_routes.router, prefix="/api/v1/auth", tags=["Authentication"])
+app.include_router(auth_controller.router, prefix="/api/v1/auth", tags=["Authentication"])
 
 # Creazione delle tabelle del database
 Base.metadata.create_all(bind=engine)

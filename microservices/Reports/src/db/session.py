@@ -10,7 +10,9 @@ from sqlalchemy.orm import sessionmaker
 DATABASE_URL = os.getenv("REPORTS_DATABASE_URL")
 
 if not DATABASE_URL:
-    raise ValueError("La variabile d'ambiente REPORTS_DATABASE_URL non è impostata.")
+    # Set default for local development
+    DATABASE_URL = "postgresql://postgres:password@localhost:5432/smile_adventure_reports"
+    print(f"⚠️  REPORTS_DATABASE_URL not set, using default: {DATABASE_URL}")
 
 # Creazione del motore di connessione al database
 # Rimosso connect_args={"check_same_thread": False} che è specifico per SQLite

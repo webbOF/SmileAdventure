@@ -1,3 +1,4 @@
+import os
 from typing import Any, Dict
 
 import httpx
@@ -6,7 +7,7 @@ from fastapi import APIRouter, Depends, HTTPException
 router = APIRouter()
 
 # URL del servizio di autenticazione
-AUTH_SERVICE_URL = "http://auth-service:8001/api/v1"
+AUTH_SERVICE_URL = os.getenv("AUTH_SERVICE_URL", "http://auth:8001/api/v1")
 
 @router.post("/login")
 async def login(user_data: Dict[str, Any]):

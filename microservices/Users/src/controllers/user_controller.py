@@ -2,13 +2,12 @@ from typing import List, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
-
-from ..db.session import get_db
-from ..models.user_model import (ProfessionalCreate, ProfessionalInDB,
-                                 ProfessionalUpdate, SpecialtyCreate,
-                                 SpecialtyInDB, SpecialtyUpdate, UserCreate,
-                                 UserInDB, UserUpdate)
-from ..services import user_service
+from src.db.session import get_db
+from src.models.user_model import (ProfessionalCreate, ProfessionalInDB,
+                                   ProfessionalUpdate, SpecialtyCreate,
+                                   SpecialtyInDB, SpecialtyUpdate, UserCreate,
+                                   UserInDB, UserUpdate)
+from src.services import user_service
 
 router = APIRouter()
 
@@ -79,8 +78,8 @@ def read_professionals(
         db, 
         skip=skip, 
         limit=limit, 
-        specialty=specialty, 
-        location=location, 
+        specialty_name=specialty,  # Mapped to correct parameter
+        location_city=location,    # Mapped to correct parameter
         min_rating=min_rating
     )
     return professionals

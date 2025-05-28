@@ -1,16 +1,18 @@
 # Users/src/services/health_records_service.py
 # Implementazione di un servizio per la gestione dei documenti sanitari
 
-import os
-import logging
 import json
+import logging
+import os
 import uuid
-from datetime import datetime, timedelta
-from sqlalchemy import Column, Integer, String, DateTime, Boolean, Text, ForeignKey, Table
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import relationship, Session
-from typing import List, Dict, Any, Optional
+from datetime import datetime, timedelta, timezone
+from typing import Any, Dict, List, Optional
+
 from pydantic import BaseModel
+from sqlalchemy import (Boolean, Column, DateTime, ForeignKey, Integer, String,
+                        Table, Text)
+from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm import Session, relationship
 
 # Configurazione logger
 logging.basicConfig(level=logging.INFO)
@@ -25,7 +27,7 @@ record_sharing = Table(
     Base.metadata,
     Column('record_id', Integer, ForeignKey('health_records.id')),
     Column('professional_id', Integer),
-    Column('shared_at', DateTime, default=datetime.utcnow),
+    Column('shared_at', DateTime, default=lambda: datetime.now(timezone.utc)),
     Column('expires_at', DateTime, nullable=True),
     Column('can_edit', Boolean, default=False)
 )
@@ -63,9 +65,9 @@ class HealthRecord(Base):
     file_type = Column(String, nullable=True)  # mime type
     file_size = Column(Integer, nullable=True)  # dimensione in bytes
     content = Column(Text, nullable=True)  # contenuto testuale del documento, se disponibile
-    metadata = Column(Text, nullable=True)  # JSON con metadati aggiuntivi
-    created_at = Column(DateTime, default=datetime.utcnow)
-    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    record_metadata = Column(Text, nullable=True)  # JSON con metadati aggiuntivi
+    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
+    updated_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
     is_deleted = Column(Boolean, default=False)
     doctor_name = Column(String, nullable=True)
     doctor_id = Column(Integer, nullable=True)  # ID del professionista, se il record è associato a un professionista
@@ -118,7 +120,7 @@ class HealthRecordResponse(BaseModel):
     shared_with: List[Dict[str, Any]] = []
     
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 class HealthRecordShareCreate(BaseModel):
     record_id: int
@@ -147,7 +149,7 @@ class HealthRecordsService:
                 description=record_data.description,
                 record_type=record_data.record_type,
                 content=record_data.content,
-                metadata=json.dumps(record_data.metadata) if record_data.metadata else None,
+                record_metadata=json.dumps(record_data.metadata) if record_data.metadata else None,
                 doctor_name=record_data.doctor_name,
                 doctor_id=record_data.doctor_id,
                 visit_date=record_data.visit_date
@@ -293,7 +295,7 @@ class HealthRecordsService:
                 record.content = record_data.content
                 
             if record_data.metadata is not None:
-                record.metadata = json.dumps(record_data.metadata)
+                record.record_metadata = json.dumps(record_data.metadata)
                 
             if record_data.doctor_name is not None:
                 record.doctor_name = record_data.doctor_name
@@ -312,7 +314,7 @@ class HealthRecordsService:
                 record.categories = categories
             
             # Salva modifiche
-            record.updated_at = datetime.utcnow()
+            record.updated_at = datetime.now(timezone.utc)
             self.db.commit()
             self.db.refresh(record)
             
@@ -351,7 +353,7 @@ class HealthRecordsService:
             else:
                 # Soft delete
                 record.is_deleted = True
-                record.updated_at = datetime.utcnow()
+                record.updated_at = datetime.now(timezone.utc)
             
             self.db.commit()
             return True
@@ -380,7 +382,7 @@ class HealthRecordsService:
             # Calcola la scadenza se specificata
             expires_at = None
             if share_data.expires_in_days:
-                expires_at = datetime.utcnow() + timedelta(days=share_data.expires_in_days)
+                expires_at = datetime.now(timezone.utc) + timedelta(days=share_data.expires_in_days)
             
             # Esegue l'operazione con SQL nativo per la tabella di associazione
             # In una versione più avanzata, si potrebbe creare un modello specifico per le condivisioni
@@ -394,7 +396,7 @@ class HealthRecordsService:
                 {
                     "record_id": share_data.record_id,
                     "professional_id": share_data.professional_id,
-                    "shared_at": datetime.utcnow(),
+                    "shared_at": datetime.now(timezone.utc),
                     "expires_at": expires_at,
                     "can_edit": share_data.can_edit
                 }
@@ -469,7 +471,7 @@ class HealthRecordsService:
                 query,
                 {
                     "professional_id": professional_id,
-                    "now": datetime.utcnow(),
+                    "now": datetime.now(timezone.utc),
                     "limit": limit,
                     "skip": skip
                 }
