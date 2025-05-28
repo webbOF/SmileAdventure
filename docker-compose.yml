@@ -1,16 +1,18 @@
-version: '3.8'
-
 services:
   api-gateway:
-    build: ./API-GATEWAY
+    build: ./microservices/API-GATEWAY
     container_name: smileadventure-api-gateway
     ports:
       - "8000:8000"
     depends_on:
-      - auth
-      - users
-      - reports # Ensured reports service is a dependency
-      - postgres-db # Added postgres-db as a dependency for the gateway to wait for all backend services
+      auth:
+        condition: service_healthy
+      users:
+        condition: service_healthy
+      reports:
+        condition: service_healthy
+      postgres-db:
+        condition: service_healthy
     environment:
       - AUTH_SERVICE_URL=http://auth-service:8001/api/v1
       - USERS_SERVICE_URL=http://users-service:8006/api/v1
@@ -19,19 +21,20 @@ services:
     networks:
       - smileadventure-network
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8000/status"]
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/status').read()"]
       interval: 30s
       timeout: 10s
       retries: 3
       start_period: 10s
 
   auth:
-    build: ./Auth
+    build: ./microservices/Auth
     container_name: smileadventure-auth-service
     ports:
       - "8001:8001"
     depends_on:
-      - postgres-db
+      postgres-db:
+        condition: service_healthy
     environment:
       # DATABASE_URL costruita usando le variabili dal file .env
       - DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres-db:5432/${POSTGRES_DB}
@@ -40,45 +43,47 @@ services:
     networks:
       - smileadventure-network
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8001/status"]
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8001/status').read()"]
       interval: 30s
       timeout: 10s
       retries: 3
       start_period: 10s
 
   users:
-    build: ./Users
+    build: ./microservices/Users
     container_name: smileadventure-users-service
     ports:
       - "8006:8006"
     depends_on:
-      - postgres-db
+      postgres-db:
+        condition: service_healthy
     environment:
       # DATABASE_URL costruita usando le variabili dal file .env
       - DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres-db:5432/${POSTGRES_DB}
     networks:
       - smileadventure-network
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8006/status"]
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8006/status').read()"]
       interval: 30s
       timeout: 10s
       retries: 3
       start_period: 10s
 
   reports:
-    build: ./Reports
+    build: ./microservices/Reports
     container_name: smileadventure-reports-service
     ports:
       - "8007:8007"
     depends_on:
-      - postgres-db
+      postgres-db:
+        condition: service_healthy
     environment:
       # REPORTS_DATABASE_URL costruita usando le variabili dal file .env
       - REPORTS_DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres-db:5432/${POSTGRES_DB}
     networks:
       - smileadventure-network
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8007/status"]
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8007/status').read()"]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -96,7 +101,7 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
     ports: # Optional: expose port for direct access/debugging
-      - "5432:5432" 
+      - "5433:5432" 
     networks:
       - smileadventure-network
     healthcheck:
@@ -113,13 +118,13 @@ services:
       - CHOKIDAR_USEPOLLING=true
       - REACT_APP_API_URL=http://localhost:8000/api/v1
     build:
-      context: ./docker-react
+      context: ./frontend/docker-react
       dockerfile: Dockerfile.dev
     ports:
       - '3000:3000'
     volumes:
       - /app/node_modules
-      - ./docker-react:/app
+      - ./frontend/docker-react:/app
     networks:
       - smileadventure-network
     depends_on:
@@ -128,17 +133,17 @@ services:
   tests:
     stdin_open: true
     build:
-      context: ./docker-react
+      context: ./frontend/docker-react
       dockerfile: Dockerfile.dev
     volumes:
       - /app/node_modules
-      - ./docker-react:/app
+      - ./frontend/docker-react:/app
     command: ['npm', 'run', 'test']
     networks:
       - smileadventure-network
 
   er-diagrams:
-    image: graphviz/graphviz:latest
+    image: python:3.10-slim
     container_name: smileadventure-er-diagrams
     volumes:
       - ./:/app
@@ -147,8 +152,8 @@ services:
     command: >
       sh -c "
         apt-get update && 
-        apt-get install -y python3 python3-pip && 
-        pip3 install eralchemy2 sqlalchemy && 
+        apt-get install -y graphviz graphviz-dev pkg-config gcc g++ && 
+        pip3 install eralchemy2 sqlalchemy pygraphviz && 
         mkdir -p /app/docs/diagrams &&
         python3 -c 'from scripts.er_model import generate_diagrams; generate_diagrams()'
       "

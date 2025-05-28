@@ -62,7 +62,9 @@ async def startup_db_client():
         
         for specialty in specialties:
             try:
-                user_service.create_specialty(db, name=specialty["name"], description=specialty["description"])
+                from .models.user_model import SpecialtyCreate
+                specialty_data = SpecialtyCreate(name=specialty["name"], description=specialty["description"])
+                user_service.create_specialty(db, specialty_data=specialty_data)
             except ValueError:
                 # Ignora errori di duplicate key, probabilmente la specialità esiste già
                 pass

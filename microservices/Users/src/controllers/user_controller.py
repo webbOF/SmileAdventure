@@ -1,19 +1,13 @@
-from fastapi import APIRouter, HTTPException, Depends, Query
-from sqlalchemy.orm import Session
 from typing import List, Optional
 
+from fastapi import APIRouter, Depends, HTTPException, Query
+from sqlalchemy.orm import Session
+
 from ..db.session import get_db
-from ..models.user_model import (
-    UserCreate,
-    UserUpdate,
-    ProfessionalCreate,
-    ProfessionalUpdate,
-    UserInDB,
-    ProfessionalInDB,
-    SpecialtyCreate,
-    SpecialtyUpdate,
-    SpecialtyInDB
-)
+from ..models.user_model import (ProfessionalCreate, ProfessionalInDB,
+                                 ProfessionalUpdate, SpecialtyCreate,
+                                 SpecialtyInDB, SpecialtyUpdate, UserCreate,
+                                 UserInDB, UserUpdate)
 from ..services import user_service
 
 router = APIRouter()
@@ -134,7 +128,7 @@ def create_specialty(specialty: SpecialtyCreate, db: Session = Depends(get_db)):
     db_specialty = user_service.get_specialty_by_name(db, name=specialty.name)
     if db_specialty:
         raise HTTPException(status_code=400, detail="Specialty already exists")
-    return user_service.create_specialty(db, name=specialty.name, description=specialty.description)
+    return user_service.create_specialty(db, specialty_data=specialty)
 
 @router.get("/specialties/", response_model=List[SpecialtyInDB])
 def read_specialties(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
