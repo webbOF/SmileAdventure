@@ -15,11 +15,10 @@ sys.path.insert(0, str(src_dir))
 print("🎯 STARTING REPORTS MICROSERVICE (TEST MODE)")
 print(f"📍 Working directory: {current_dir}")
 
-try:
-    # Import FastAPI app without database initialization
+try:    # Import FastAPI app without database initialization
     from fastapi import FastAPI
     from fastapi.middleware.cors import CORSMiddleware
-    from src.routes import report_routes
+    from src.routes import report_routes_clean as report_routes
     
     app = FastAPI(
         title="SmileAdventure Reports API",
@@ -34,21 +33,19 @@ try:
         allow_credentials=True,
         allow_methods=["*"],
         allow_headers=["*"],
-    )
-
-    # Include routes
+    )    # Include routes
     app.include_router(report_routes.router, prefix="/api/reports")
-
+    
     # Health check endpoint
     @app.get("/health")
     async def health():
         return {"status": "healthy", "service": "reports", "mode": "test"}
 
     print("✅ Reports service started successfully!")
-    print("🌐 Running on: http://localhost:8007")
-    print("📋 API docs: http://localhost:8007/docs")
+    print("🌐 Running on: http://localhost:8009")
+    print("📋 API docs: http://localhost:8009/docs")
     
-    uvicorn.run(app, host="0.0.0.0", port=8007)
+    uvicorn.run(app, host="0.0.0.0", port=8009)
 
 except Exception as e:
     print(f"❌ Failed to start Reports service: {e}")
