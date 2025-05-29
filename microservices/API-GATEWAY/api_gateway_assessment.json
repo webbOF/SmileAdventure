@@ -1,0 +1,117 @@
+{
+  "overall_score": 0.0,
+  "connectivity": {
+    "API Gateway": {
+      "status": "\u274c DOWN",
+      "response_time": 0,
+      "reachable": false,
+      "response": "Connection refused"
+    },
+    "Auth Service": {
+      "status": "\u274c DOWN",
+      "response_time": 0,
+      "reachable": false,
+      "response": "Connection refused"
+    },
+    "Users Service": {
+      "status": "\u274c DOWN",
+      "response_time": 0,
+      "reachable": false,
+      "response": "Connection refused"
+    },
+    "Reports Service": {
+      "status": "\u274c DOWN",
+      "response_time": 0,
+      "reachable": false,
+      "response": "Connection refused"
+    },
+    "Game Service": {
+      "status": "\u274c DOWN",
+      "response_time": 0,
+      "reachable": false,
+      "response": "Connection refused"
+    }
+  },
+  "routing": [
+    {
+      "test": "Gateway Status",
+      "status": "\u274c NO_ROUTE",
+      "http_code": "N/A",
+      "target": "Gateway",
+      "response_preview": "Gateway not reachable"
+    },
+    {
+      "test": "Gateway Health Check",
+      "status": "\u274c NO_ROUTE",
+      "http_code": "N/A",
+      "target": "All Services",
+      "response_preview": "Gateway not reachable"
+    },
+    {
+      "test": "Auth Login Route",
+      "status": "\u274c NO_ROUTE",
+      "http_code": "N/A",
+      "target": "Auth:8001",
+      "response_preview": "Gateway not reachable"
+    },
+    {
+      "test": "Users Route (Protected)",
+      "status": "\u274c NO_ROUTE",
+      "http_code": "N/A",
+      "target": "Users:8006",
+      "response_preview": "Gateway not reachable"
+    },
+    {
+      "test": "Reports Game Session",
+      "status": "\u274c NO_ROUTE",
+      "http_code": "N/A",
+      "target": "Reports:8007",
+      "response_preview": "Gateway not reachable"
+    }
+  ],
+  "authentication": [
+    {
+      "test": "No Token Access",
+      "status": "\ud83d\udca5 ERROR",
+      "http_code": "N/A",
+      "expected": "401 Unauthorized",
+      "response": "HTTPConnectionPool(host='localhost', port=8000): Max retries exceeded with url: /api/v1/users/me (Ca"
+    },
+    {
+      "test": "Invalid Token",
+      "status": "\ud83d\udca5 ERROR",
+      "http_code": "N/A",
+      "expected": "401 Unauthorized",
+      "response": "HTTPConnectionPool(host='localhost', port=8000): Max retries exceeded with url: /api/v1/users/me (Ca"
+    },
+    {
+      "test": "Malformed Auth Header",
+      "status": "\ud83d\udca5 ERROR",
+      "http_code": "N/A",
+      "expected": "422 or 401",
+      "response": "HTTPConnectionPool(host='localhost', port=8000): Max retries exceeded with url: /api/v1/users/me (Ca"
+    }
+  ],
+  "error_handling": [
+    {
+      "test": "Service Down Response",
+      "status": "\ud83d\udca5 ERROR",
+      "behavior": "503 Service Unavailable or timeout",
+      "actual_response": "HTTPConnectionPool(host='localhost', port=8000): Max retries exceeded with url: /api/v1/users/1 (Caused by NewConnectionError('<urllib3.connection.HTT"
+    },
+    {
+      "test": "Invalid Route",
+      "status": "\ud83d\udca5 ERROR",
+      "behavior": "404 Not Found",
+      "actual_response": "HTTPConnectionPool(host='localhost', port=8000): Max retries exceeded with url: /api/v1/nonexistent/endpoint (Caused by NewConnectionError('<urllib3.c"
+    },
+    {
+      "test": "Method Not Allowed",
+      "status": "\ud83d\udca5 ERROR",
+      "behavior": "405 Method Not Allowed",
+      "actual_response": "HTTPConnectionPool(host='localhost', port=8000): Max retries exceeded with url: /api/v1/health (Caused by NewConnectionError('<urllib3.connection.HTTP"
+    }
+  ],
+  "cors": {},
+  "timestamp": "2025-05-29T14:15:57.050722"
+}

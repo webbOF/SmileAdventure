@@ -1,0 +1,140 @@
+{
+  "overall_score": 56.58,
+  "core_files": {
+    "main.py": {
+      "status": "EMPTY",
+      "content": "# FastAPI application con:\n# - CORS middleware\n# - Router registration\n# - Database initialization\n# - Startup data seeding\n# - Error handling\n# - Health checks",
+      "lines": 7,
+      "code_lines": 0,
+      "comment_lines": 7,
+      "empty_lines": 0,
+      "implementation": 0
+    },
+    "game_service.py": {
+      "status": "EMPTY",
+      "content": "",
+      "lines": 1,
+      "code_lines": 0,
+      "comment_lines": 0,
+      "empty_lines": 1,
+      "implementation": 0
+    },
+    "game_controller.py": {
+      "status": "EMPTY",
+      "content": "",
+      "lines": 1,
+      "code_lines": 0,
+      "comment_lines": 0,
+      "empty_lines": 1,
+      "implementation": 0
+    },
+    "game_routes.py": {
+      "status": "EMPTY",
+      "content": "",
+      "lines": 1,
+      "code_lines": 0,
+      "comment_lines": 0,
+      "empty_lines": 1,
+      "implementation": 0
+    },
+    "session.py": {
+      "status": "PARTIAL",
+      "content": "import os\n\nfrom sqlalchemy import create_engine\nfrom sqlalchemy.ext.declarative import declarative_base\nfrom sqlalchemy.orm import sessionmaker\n\n# Percorso assoluto per il database\nbase_dir = os.path.abspath(os.path.dirname(os.path.dirname(os.path.dirname(__file__))))\ndata_dir = os.path.join(base_dir, \"data\")\nos.makedirs(data_dir, exist_ok=True)\ndb_path = os.path.join(data_dir, \"game.db\")\n\n# URL del database\nDATABASE_URL = os.getenv(\"DATABASE_URL\", f\"sqlite:///{db_path}\")\n\n# Creazione del motore di connessione al database\nengine = create_engine(DATABASE_URL, connect_args={\"check_same_thread\": False})\n# Creazione della sessione del database\nSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)\n# Creazione della base per la dichiarazione delle tabelle\nBase = declarative_base()\n\n# Funzione per ottenere una sessione del database\ndef get_db():\n    db = SessionLocal()\n    try:\n        yield db\n    finally:\n        db.close()",
+      "lines": 29,
+      "code_lines": 18,
+      "comment_lines": 6,
+      "empty_lines": 5,
+      "implementation": 75.0
+    }
+  },
+  "models": {
+    "status": "COMPLETE",
+    "content": "from datetime import datetime\nfrom enum import Enum\nfrom typing import Any, Dict, List, Optional\n\nfrom pydantic import BaseModel, Field\nfrom sqlalchemy import (JSON, Boolean, Column, DateTime, Float, ForeignKey,\n                        Integer, String, Table, Text)\nfrom sqlalchemy.ext.declarative import declarative_base\nfrom sqlalchemy.orm import relationship\n\nBase = declarative_base()\n\n# Enums per il sistema\nclass EmotionalState(str, Enum):\n    very_calm = \"very_calm\"\n    calm = \"calm\"\n    neutral = \"neutral\"\n    anxious = \"anxious\"\n    very_anxious = \"very_anxious\"\n    overstimulated = \"overstimulated\"\n\nclass DifficultyLevel(str, Enum):\n    very_easy = \"very_easy\"\n    easy = \"easy\"\n    medium = \"medium\"\n    hard = \"hard\"\n    very_hard = \"very_hard\"\n\nclass ModuleType(str, Enum):\n    introduction = \"introduction\"\n    tool_exploration = \"tool_exploration\"\n    breathing_exercise = \"breathing_exercise\"\n    social_story = \"social_story\"\n    video_modeling = \"video_modeling\"\n    full_simulation = \"full_simulation\"\n\nclass ContentType(str, Enum):\n    video = \"video\"\n    audio = \"audio\"\n    image = \"image\"\n    text = \"text\"\n    interactive_3d = \"interactive_3d\"\n\nclass ASDSupportLevel(int, Enum):\n    level_1 = 1  # Requiring support\n    level_2 = 2  # Requiring substantial support\n    level_3 = 3  # Requiring very substantial support\n\n# Tabelle di associazione\nsession_modules = Table(\n    'session_modules',\n    Base.metadata,\n    Column('session_id', Integer, ForeignKey('game_sessions.id')),\n    Column('module_id', Integer, ForeignKey('learning_modules.id'))\n)\n\nmodule_content = Table(\n    'module_content',\n    Base.metadata,\n    Column('module_id', Integer, ForeignKey('learning_modules.id')),\n    Column('content_id', Integer, ForeignKey('content_items.id'))\n)\n\n# =============== SQLALCHEMY MODELS ===============\n\nclass SensoryProfile(Base):\n    __tablename__ = \"sensory_profiles\"\n\n    id = Column(Integer, primary_key=True, index=True)\n    child_id = Column(Integer, nullable=False, index=True)  # Reference to Users service\n    \n    # Sensibilit\u00e0 visive\n    light_sensitivity = Column(Integer, default=3)  # 1-5 scale\n    color_preference = Column(String, default=\"calm_blues\")  # calm_blues, soft_greens, neutrals\n    motion_sensitivity = Column(Integer, default=3)  # 1-5, tolerance for animations\n    \n    # Sensibilit\u00e0 auditive\n    sound_sensitivity = Column(Integer, default=3)  # 1-5 scale\n    preferred_volume = Column(Float, default=0.7)  # 0.0-1.0\n    background_music_tolerance = Column(Boolean, default=True)\n    \n    # Preferenze tattili (per haptic feedback)\n    haptic_feedback_enabled = Column(Boolean, default=True)\n    vibration_intensity = Column(Float, default=0.5)  # 0.0-1.0\n    \n    # Preferenze sociali\n    eye_contact_comfortable = Column(Boolean, default=False)\n    prefer_robot_interaction = Column(Boolean, default=True)\n    social_interaction_level = Column(Integer, default=2)  # 1-5\n    \n    # Support level ASD\n    asd_support_level = Column(Integer, default=1)  # 1-3 based on DSM-5\n    \n    # Metadati\n    created_at = Column(DateTime, default=datetime.utcnow)\n    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)\n    \n    # Relazioni\n    game_sessions = relationship(\"GameSession\", back_populates=\"sensory_profile\")\n\nclass LearningModule(Base):\n    __tablename__ = \"learning_modules\"\n\n    id = Column(Integer, primary_key=True, index=True)\n    title = Column(String, nullable=False)\n    description = Column(Text)\n    module_type = Column(String, nullable=False)  # ModuleType enum\n    \n    # Configurazione modulo\n    estimated_duration_minutes = Column(Integer, default=5)\n    difficulty_level = Column(String, default=\"easy\")  # DifficultyLevel enum\n    min_age = Column(Integer, default=3)\n    max_age = Column(Integer, default=12)\n    \n    # ASD-specific configuration\n    suitable_for_asd_levels = Column(JSON)  # [1, 2, 3] - which ASD support levels\n    sensory_considerations = Column(JSON)  # {\"low_audio\": true, \"calm_colors\": true}\n    \n    # Obiettivi educativi\n    learning_objectives = Column(JSON)  # [\"familiarize_with_dental_chair\", \"reduce_anxiety\"]\n    success_criteria = Column(JSON)  # {\"completion_time\": \"< 10 min\", \"anxiety_level\": \"< 3\"}\n    \n    # Contenuti del modulo\n    introduction_text = Column(Text)\n    instructions = Column(Text)\n    \n    # Personalizzazione\n    customizable_elements = Column(JSON)  # elementi che possono essere personalizzati\n    \n    # Metadati\n    is_active = Column(Boolean, default=True)\n    created_at = Column(DateTime, default=datetime.utcnow)\n    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)\n    \n    # Relazioni\n    content_items = relationship(\"ContentItem\", secondary=module_content, back_populates=\"modules\")\n    session_modules = relationship(\"GameSession\", secondary=session_modules, back_populates=\"completed_modules\")\n    progress_metrics = relationship(\"ProgressMetric\", back_populates=\"module\")\n\nclass ContentItem(Base):\n    __tablename__ = \"content_items\"\n\n    id = Column(Integer, primary_key=True, index=True)\n    title = Column(String, nullable=False)\n    description = Column(Text)\n    content_type = Column(String, nullable=False)  # ContentType enum\n    \n    # File information\n    file_url = Column(String)  # URL or path to the content file\n    file_size = Column(Integer)  # in bytes\n    mime_type = Column(String)\n    \n    # Content metadata\n    duration_seconds = Column(Integer)  # for video/audio content\n    dimensions = Column(JSON)  # {\"width\": 1920, \"height\": 1080} for images/videos\n    \n    # ASD-specific properties\n    sensory_safe = Column(Boolean, default=True)\n    calm_content = Column(Boolean, default=True)\n    contains_flashing = Column(Boolean, default=False)\n    audio_level = Column(String, default=\"soft\")  # soft, medium, loud\n    \n    # Customization support\n    dentist_customizable = Column(Boolean, default=False)\n    parent_customizable = Column(Boolean, default=False)\n    \n    # Categorization\n    tags = Column(JSON)  # [\"dental_tools\", \"calming\", \"educational\"]\n    age_appropriate = Column(JSON)  # [3, 4, 5, 6, 7, 8, 9, 10, 11, 12]\n    \n    # Metadati\n    is_active = Column(Boolean, default=True)\n    created_at = Column(DateTime, default=datetime.utcnow)\n    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)\n    \n    # Relazioni\n    modules = relationship(\"LearningModule\", secondary=module_content, back_populates=\"content_items\")\n\nclass GameSession(Base):\n    __tablename__ = \"game_sessions\"\n\n    id = Column(Integer, primary_key=True, index=True)\n    child_id = Column(Integer, nullable=False, index=True)  # Reference to Users service\n    sensory_profile_id = Column(Integer, ForeignKey(\"sensory_profiles.id\"), nullable=True)\n    \n    # Session info\n    session_type = Column(String, default=\"standard\")  # standard, assessment, custom\n    started_at = Column(DateTime, default=datetime.utcnow)\n    ended_at = Column(DateTime, nullable=True)\n    total_duration_minutes = Column(Float, default=0)\n    \n    # Progress tracking\n    current_module_id = Column(Integer, ForeignKey(\"learning_modules.id\"), nullable=True)\n    modules_completed = Column(Integer, default=0)\n    overall_completion_percentage = Column(Float, default=0.0)\n    \n    # Emotional state tracking\n    initial_emotional_state = Column(String, default=\"neutral\")  # EmotionalState enum\n    final_emotional_state = Column(String, default=\"neutral\")\n    emotional_state_changes = Column(JSON)  # [{\"timestamp\": \"...\", \"state\": \"calm\", \"trigger\": \"...\"}]\n    \n    # Interaction quality\n    engagement_level = Column(Float, default=0.5)  # 0.0-1.0\n    response_time_average = Column(Float)  # average response time in seconds\n    successful_interactions = Column(Integer, default=0)\n    total_interactions = Column(Integer, default=0)\n    \n    # Adaptive learning data\n    difficulty_adjustments = Column(JSON)  # automatic difficulty changes during session\n    intervention_triggers = Column(JSON)  # when and why interventions were suggested\n    \n    # Device and environment\n    device_info = Column(JSON)  # device type, OS version, etc.\n    environment_settings = Column(JSON)  # lighting, volume, haptic settings used\n    \n    # Session outcome\n    session_rating = Column(Integer, nullable=True)  # 1-5, child's self-rating if capable\n    parent_feedback = Column(Text, nullable=True)\n    notes = Column(Text, nullable=True)\n    \n    # Metadati\n    created_at = Column(DateTime, default=datetime.utcnow)\n    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)\n    \n    # Relazioni\n    sensory_profile = relationship(\"SensoryProfile\", back_populates=\"game_sessions\")\n    current_module = relationship(\"LearningModule\", foreign_keys=[current_module_id])\n    completed_modules = relationship(\"LearningModule\", secondary=session_modules, back_populates=\"session_modules\")\n    progress_metrics = relationship(\"ProgressMetric\", back_populates=\"session\")\n\nclass ProgressMetric(Base):\n    __tablename__ = \"progress_metrics\"\n\n    id = Column(Integer, primary_key=True, index=True)\n    session_id = Column(Integer, ForeignKey(\"game_sessions.id\"), nullable=False)\n    module_id = Column(Integer, ForeignKey(\"learning_modules.id\"), nullable=True)\n    child_id = Column(Integer, nullable=False, index=True)\n    \n    # Timestamp\n    recorded_at = Column(DateTime, default=datetime.utcnow)\n    \n    # Behavioral metrics\n    attention_span_seconds = Column(Float)\n    anxiety_level = Column(Integer)  # 1-5 scale\n    comfort_level = Column(Integer)  # 1-5 scale\n    cooperation_level = Column(Integer)  # 1-5 scale\n    \n    # Interaction metrics\n    task_completion_time = Column(Float)  # seconds\n    number_of_attempts = Column(Integer, default=1)\n    help_requests = Column(Integer, default=0)\n    spontaneous_interactions = Column(Integer, default=0)\n    \n    # Learning metrics\n    skill_demonstration = Column(JSON)  # {\"opened_mouth\": true, \"stayed_calm\": true}\n    knowledge_retention = Column(JSON)  # quiz/assessment results\n    generalization_evidence = Column(JSON)  # applying skills to new contexts\n    \n    # Sensory response metrics\n    sensory_overload_incidents = Column(Integer, default=0)\n    sensory_seeking_behaviors = Column(Integer, default=0)\n    preferred_sensory_inputs = Column(JSON)  # what worked well\n    \n    # Social interaction metrics (with Pepper robot)\n    robot_interaction_quality = Column(Float, default=0.5)  # 0.0-1.0\n    social_initiation_attempts = Column(Integer, default=0)\n    turn_taking_success = Column(Float, default=0.0)  # percentage\n    \n    # Communication metrics\n    verbal_responses = Column(Integer, default=0)\n    non_verbal_responses = Column(Integer, default=0)\n    communication_clarity = Column(Float, default=0.5)  # 0.0-1.0\n    \n    # Goal achievement\n    session_goals_met = Column(JSON)  # {\"stay_calm\": true, \"explore_tools\": false}\n    breakthrough_moments = Column(JSON)  # significant positive moments\n    regression_indicators = Column(JSON)  # any concerning behaviors\n    \n    # Contextual factors\n    environmental_factors = Column(JSON)  # noise level, lighting, etc.\n    physical_state = Column(String)  # tired, energetic, sick, etc.\n    emotional_context = Column(String)  # had_good_day, stressed, excited, etc.\n    \n    # Metadati\n    created_at = Column(DateTime, default=datetime.utcnow)\n    \n    # Relazioni\n    session = relationship(\"GameSession\", back_populates=\"progress_metrics\")\n    module = relationship(\"LearningModule\", back_populates=\"progress_metrics\")\n\n# =============== PYDANTIC SCHEMAS ===============\n\n# SensoryProfile Schemas\nclass SensoryProfileBase(BaseModel):\n    child_id: int\n    light_sensitivity: int = Field(default=3, ge=1, le=5)\n    color_preference: str = \"calm_blues\"\n    motion_sensitivity: int = Field(default=3, ge=1, le=5)\n    sound_sensitivity: int = Field(default=3, ge=1, le=5)\n    preferred_volume: float = Field(default=0.7, ge=0.0, le=1.0)\n    background_music_tolerance: bool = True\n    haptic_feedback_enabled: bool = True\n    vibration_intensity: float = Field(default=0.5, ge=0.0, le=1.0)\n    eye_contact_comfortable: bool = False\n    prefer_robot_interaction: bool = True\n    social_interaction_level: int = Field(default=2, ge=1, le=5)\n    asd_support_level: int = Field(default=1, ge=1, le=3)\n\nclass SensoryProfileCreate(SensoryProfileBase):\n    pass\n\nclass SensoryProfileUpdate(BaseModel):\n    light_sensitivity: Optional[int] = Field(None, ge=1, le=5)\n    color_preference: Optional[str] = None\n    motion_sensitivity: Optional[int] = Field(None, ge=1, le=5)\n    sound_sensitivity: Optional[int] = Field(None, ge=1, le=5)\n    preferred_volume: Optional[float] = Field(None, ge=0.0, le=1.0)\n    background_music_tolerance: Optional[bool] = None\n    haptic_feedback_enabled: Optional[bool] = None\n    vibration_intensity: Optional[float] = Field(None, ge=0.0, le=1.0)\n    eye_contact_comfortable: Optional[bool] = None\n    prefer_robot_interaction: Optional[bool] = None\n    social_interaction_level: Optional[int] = Field(None, ge=1, le=5)\n    asd_support_level: Optional[int] = Field(None, ge=1, le=3)\n\nclass SensoryProfileInDB(SensoryProfileBase):\n    id: int\n    created_at: datetime\n    updated_at: datetime\n    \n    class Config:\n        from_attributes = True\n\n# LearningModule Schemas\nclass LearningModuleBase(BaseModel):\n    title: str\n    description: Optional[str] = None\n    module_type: ModuleType\n    estimated_duration_minutes: int = 5\n    difficulty_level: DifficultyLevel = DifficultyLevel.easy\n    min_age: int = 3\n    max_age: int = 12\n    suitable_for_asd_levels: List[int] = [1, 2, 3]\n    sensory_considerations: Dict[str, Any] = {}\n    learning_objectives: List[str] = []\n    success_criteria: Dict[str, Any] = {}\n    introduction_text: Optional[str] = None\n    instructions: Optional[str] = None\n    customizable_elements: Dict[str, Any] = {}\n\nclass LearningModuleCreate(LearningModuleBase):\n    pass\n\nclass LearningModuleUpdate(BaseModel):\n    title: Optional[str] = None\n    description: Optional[str] = None\n    module_type: Optional[ModuleType] = None\n    estimated_duration_minutes: Optional[int] = None\n    difficulty_level: Optional[DifficultyLevel] = None\n    min_age: Optional[int] = None\n    max_age: Optional[int] = None\n    suitable_for_asd_levels: Optional[List[int]] = None\n    sensory_considerations: Optional[Dict[str, Any]] = None\n    learning_objectives: Optional[List[str]] = None\n    success_criteria: Optional[Dict[str, Any]] = None\n    introduction_text: Optional[str] = None\n    instructions: Optional[str] = None\n    customizable_elements: Optional[Dict[str, Any]] = None\n    is_active: Optional[bool] = None\n\nclass LearningModuleInDB(LearningModuleBase):\n    id: int\n    is_active: bool\n    created_at: datetime\n    updated_at: datetime\n    \n    class Config:\n        from_attributes = True\n\n# ContentItem Schemas\nclass ContentItemBase(BaseModel):\n    title: str\n    description: Optional[str] = None\n    content_type: ContentType\n    file_url: Optional[str] = None\n    file_size: Optional[int] = None\n    mime_type: Optional[str] = None\n    duration_seconds: Optional[int] = None\n    dimensions: Optional[Dict[str, int]] = None\n    sensory_safe: bool = True\n    calm_content: bool = True\n    contains_flashing: bool = False\n    audio_level: str = \"soft\"\n    dentist_customizable: bool = False\n    parent_customizable: bool = False\n    tags: List[str] = []\n    age_appropriate: List[int] = [3, 4, 5, 6, 7, 8, 9, 10, 11, 12]\n\nclass ContentItemCreate(ContentItemBase):\n    pass\n\nclass ContentItemUpdate(BaseModel):\n    title: Optional[str] = None\n    description: Optional[str] = None\n    content_type: Optional[ContentType] = None\n    file_url: Optional[str] = None\n    file_size: Optional[int] = None\n    mime_type: Optional[str] = None\n    duration_seconds: Optional[int] = None\n    dimensions: Optional[Dict[str, int]] = None\n    sensory_safe: Optional[bool] = None\n    calm_content: Optional[bool] = None\n    contains_flashing: Optional[bool] = None\n    audio_level: Optional[str] = None\n    dentist_customizable: Optional[bool] = None\n    parent_customizable: Optional[bool] = None\n    tags: Optional[List[str]] = None\n    age_appropriate: Optional[List[int]] = None\n    is_active: Optional[bool] = None\n\nclass ContentItemInDB(ContentItemBase):\n    id: int\n    is_active: bool\n    created_at: datetime\n    updated_at: datetime\n    \n    class Config:\n        from_attributes = True\n\n# GameSession Schemas\nclass GameSessionBase(BaseModel):\n    child_id: int\n    sensory_profile_id: Optional[int] = None\n    session_type: str = \"standard\"\n    current_module_id: Optional[int] = None\n    initial_emotional_state: EmotionalState = EmotionalState.neutral\n    device_info: Optional[Dict[str, Any]] = None\n    environment_settings: Optional[Dict[str, Any]] = None\n\nclass GameSessionCreate(GameSessionBase):\n    pass\n\nclass GameSessionUpdate(BaseModel):\n    current_module_id: Optional[int] = None\n    modules_completed: Optional[int] = None\n    overall_completion_percentage: Optional[float] = Field(None, ge=0.0, le=100.0)\n    final_emotional_state: Optional[EmotionalState] = None\n    emotional_state_changes: Optional[List[Dict[str, Any]]] = None\n    engagement_level: Optional[float] = Field(None, ge=0.0, le=1.0)\n    response_time_average: Optional[float] = None\n    successful_interactions: Optional[int] = None\n    total_interactions: Optional[int] = None\n    difficulty_adjustments: Optional[List[Dict[str, Any]]] = None\n    intervention_triggers: Optional[List[Dict[str, Any]]] = None\n    session_rating: Optional[int] = Field(None, ge=1, le=5)\n    parent_feedback: Optional[str] = None\n    notes: Optional[str] = None\n    ended_at: Optional[datetime] = None\n\nclass GameSessionInDB(GameSessionBase):\n    id: int\n    started_at: datetime\n    ended_at: Optional[datetime] = None\n    total_duration_minutes: float\n    modules_completed: int\n    overall_completion_percentage: float\n    final_emotional_state: EmotionalState\n    engagement_level: float\n    successful_interactions: int\n    total_interactions: int\n    session_rating: Optional[int] = None\n    created_at: datetime\n    updated_at: datetime\n    \n    class Config:\n        from_attributes = True\n\n# ProgressMetric Schemas\nclass ProgressMetricBase(BaseModel):\n    session_id: int\n    module_id: Optional[int] = None\n    child_id: int\n    attention_span_seconds: Optional[float] = None\n    anxiety_level: Optional[int] = Field(None, ge=1, le=5)\n    comfort_level: Optional[int] = Field(None, ge=1, le=5)\n    cooperation_level: Optional[int] = Field(None, ge=1, le=5)\n    task_completion_time: Optional[float] = None\n    number_of_attempts: int = 1\n    help_requests: int = 0\n    spontaneous_interactions: int = 0\n    skill_demonstration: Dict[str, Any] = {}\n    knowledge_retention: Dict[str, Any] = {}\n    sensory_overload_incidents: int = 0\n    sensory_seeking_behaviors: int = 0\n    preferred_sensory_inputs: Dict[str, Any] = {}\n    robot_interaction_quality: float = Field(default=0.5, ge=0.0, le=1.0)\n    social_initiation_attempts: int = 0\n    turn_taking_success: float = Field(default=0.0, ge=0.0, le=1.0)\n    verbal_responses: int = 0\n    non_verbal_responses: int = 0\n    communication_clarity: float = Field(default=0.5, ge=0.0, le=1.0)\n    session_goals_met: Dict[str, bool] = {}\n    breakthrough_moments: List[Dict[str, Any]] = []\n    regression_indicators: List[Dict[str, Any]] = []\n    environmental_factors: Dict[str, Any] = {}\n    physical_state: Optional[str] = None\n    emotional_context: Optional[str] = None\n\nclass ProgressMetricCreate(ProgressMetricBase):\n    pass\n\nclass ProgressMetricInDB(ProgressMetricBase):\n    id: int\n    recorded_at: datetime\n    created_at: datetime\n    \n    class Config:\n        from_attributes = True\n\n# Response models for API\nclass SessionProgressSummary(BaseModel):\n    child_id: int\n    total_sessions: int\n    total_play_time_hours: float\n    average_engagement: float\n    anxiety_trend: List[float]  # last 10 sessions\n    skills_progress: Dict[str, float]  # skill -> progress percentage\n    recent_breakthroughs: List[str]\n    recommended_next_modules: List[int]\n\nclass AdaptiveLearningRecommendation(BaseModel):\n    child_id: int\n    recommended_difficulty: DifficultyLevel\n    suggested_module_ids: List[int]\n    environmental_adjustments: Dict[str, Any]\n    intervention_suggestions: List[str]\n    rationale: str",
+    "lines": 537,
+    "code_lines": 398,
+    "comment_lines": 51,
+    "empty_lines": 88,
+    "implementation": 88.6,
+    "models": {
+      "SensoryProfile": true,
+      "LearningModule": true,
+      "GameSession": true,
+      "ProgressMetric": true,
+      "ContentItem": true
+    },
+    "enums": {
+      "EmotionalState": true,
+      "DifficultyLevel": true,
+      "ModuleType": true,
+      "ASDSupportLevel": true
+    },
+    "schemas": {
+      "SensoryProfileCreate": true,
+      "GameSessionCreate": true,
+      "LearningModuleCreate": true
+    },
+    "models_count": 5,
+    "enums_count": 4,
+    "schemas_count": 3
+  },
+  "asd_features": {
+    "sensory_profile_management": {
+      "implemented": true,
+      "priority": "CRITICAL",
+      "description": "Sensory sensitivity and preference tracking"
+    },
+    "adaptive_learning": {
+      "implemented": false,
+      "priority": "HIGH",
+      "description": "Dynamic difficulty adjustment based on ASD needs"
+    },
+    "emotional_state_tracking": {
+      "implemented": true,
+      "priority": "HIGH",
+      "description": "Real-time emotional state monitoring"
+    },
+    "social_interaction_metrics": {
+      "implemented": true,
+      "priority": "MEDIUM",
+      "description": "Tracking interaction with Pepper robot"
+    },
+    "sensory_overload_prevention": {
+      "implemented": true,
+      "priority": "CRITICAL",
+      "description": "Preventing sensory overwhelm"
+    }
+  },
+  "connectivity": [
+    {
+      "test": "Status Endpoint",
+      "status": "\u274c CONNECTION_ERROR",
+      "http_code": "N/A",
+      "response": "Service not running"
+    },
+    {
+      "test": "Root Endpoint",
+      "status": "\u274c CONNECTION_ERROR",
+      "http_code": "N/A",
+      "response": "Service not running"
+    },
+    {
+      "test": "API v1 Root",
+      "status": "\u274c CONNECTION_ERROR",
+      "http_code": "N/A",
+      "response": "Service not running"
+    },
+    {
+      "test": "Health Check",
+      "status": "\u274c CONNECTION_ERROR",
+      "http_code": "N/A",
+      "response": "Service not running"
+    }
+  ],
+  "db_status": {
+    "status": "\u2705 SUCCESS",
+    "db_file_exists": true,
+    "db_path": "C:\\Users\\arman\\Desktop\\SeriousGame\\microservices\\Game\\data\\game.db",
+    "tables_created": true,
+    "models_imported": true
+  }
+}

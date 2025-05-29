@@ -1,4 +1,5 @@
 import datetime  # Assicurati che sia importato
+import os
 
 import httpx
 from fastapi import APIRouter, HTTPException
@@ -6,9 +7,9 @@ from fastapi import APIRouter, HTTPException
 router = APIRouter()
 
 # Definizione degli URL base per i microservizi
-AUTH_SERVICE_URL = "http://auth-service:8001/api/v1"
-USERS_SERVICE_URL = "http://users-service:8006/api/v1"
-REPORTS_SERVICE_URL = "http://reports-service:8007/api/v1"  # Aggiunto per il futuro servizio Reports
+AUTH_SERVICE_URL = os.getenv("AUTH_SERVICE_URL", "http://auth:8001/api/v1")
+USERS_SERVICE_URL = os.getenv("USERS_SERVICE_URL", "http://users:8006/api/v1")
+REPORTS_SERVICE_URL = os.getenv("REPORTS_SERVICE_URL", "http://reports:8007/api/v1")
 # NOTIFICATION_SERVICE_URL = "http://notification-service:8004/api/v1" # Esempio se si volesse riaggiungere
 
 # Include i router specifici per ciascun servizio
@@ -29,14 +30,13 @@ async def health_check():
     
     async with httpx.AsyncClient() as client:
         services_to_check = {
-            "auth": f"{AUTH_SERVICE_URL}/auth/status",  # Assumendo che l'endpoint di status sia /auth/status
-            "users": f"{USERS_SERVICE_URL}/users/status",  # Assumendo /users/status
-            "reports": f"{REPORTS_SERVICE_URL}/reports/status"  # Assumendo /reports/status
-            # "notification": f"{NOTIFICATION_SERVICE_URL}/notifications/status", # Esempio
+            "auth": "http://auth:8001/status",  # Direct status endpoint
+            "users": "http://users:8006/status",  # Direct status endpoint
+            "reports": "http://reports:8007/status"  # Direct status endpoint
         }
         for service_name, url in services_to_check.items():
             try:
-                response = await client.get(url, timeout=2.0)
+                response = await client.get(url, timeout=10.0)
                 health_status[service_name] = "online" if response.status_code == 200 else f"degraded - {response.status_code}"
             except httpx.TimeoutException:
                 health_status[service_name] = "offline (timeout)"

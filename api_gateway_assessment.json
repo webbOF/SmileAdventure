@@ -1,0 +1,131 @@
+{
+  "overall_score": 78.66666666666667,
+  "connectivity": {
+    "API Gateway": {
+      "status": "\u2705 UP",
+      "response_time": 30.42,
+      "reachable": true,
+      "response": {
+        "status": "API Gateway is running"
+      }
+    },
+    "Auth Service": {
+      "status": "\u2705 UP",
+      "response_time": 15.23,
+      "reachable": true,
+      "response": {
+        "status": "online",
+        "service": "auth"
+      }
+    },
+    "Users Service": {
+      "status": "\u2705 UP",
+      "response_time": 5.65,
+      "reachable": true,
+      "response": {
+        "status": "Users service is running"
+      }
+    },
+    "Reports Service": {
+      "status": "\u2705 UP",
+      "response_time": 26.31,
+      "reachable": true,
+      "response": {
+        "status": "Reports service is running"
+      }
+    },
+    "Game Service": {
+      "status": "\u274c DOWN",
+      "response_time": 0,
+      "reachable": false,
+      "response": "Connection refused"
+    }
+  },
+  "routing": [
+    {
+      "test": "Gateway Status",
+      "status": "\u2705 ROUTED",
+      "http_code": 200,
+      "target": "Gateway",
+      "response_preview": "{\"status\":\"API Gateway is running\"}"
+    },
+    {
+      "test": "Gateway Health Check",
+      "status": "\u2705 ROUTED",
+      "http_code": 200,
+      "target": "All Services",
+      "response_preview": "{\"status\":\"healthy\",\"services\":{\"auth\":\"offline (timeout)\",\"users\":\"offline (timeout)\",\"reports\":\"of"
+    },
+    {
+      "test": "Auth Login Route",
+      "status": "\u2705 ROUTED",
+      "http_code": 401,
+      "target": "Auth:8001",
+      "response_preview": "{\"detail\":\"Credenziali non valide\"}"
+    },
+    {
+      "test": "Users Route (Protected)",
+      "status": "\u2705 ROUTED",
+      "http_code": 401,
+      "target": "Users:8006",
+      "response_preview": "{\"detail\":\"Invalid or expired authentication token\"}"
+    },
+    {
+      "test": "Reports Game Session",
+      "status": "\u2705 ROUTED",
+      "http_code": 401,
+      "target": "Reports:8007",
+      "response_preview": "{\"detail\":\"Invalid or expired authentication token\"}"
+    }
+  ],
+  "authentication": [
+    {
+      "test": "No Token Access",
+      "status": "\u26a0\ufe0f HTTP 403",
+      "http_code": 403,
+      "expected": "401 Unauthorized",
+      "response": "{\"detail\":\"Not authenticated\"}"
+    },
+    {
+      "test": "Invalid Token",
+      "status": "\u2705 PROTECTED",
+      "http_code": 401,
+      "expected": "401 Unauthorized",
+      "response": "{\"detail\":\"Invalid or expired authentication token\"}"
+    },
+    {
+      "test": "Malformed Auth Header",
+      "status": "\u26a0\ufe0f HTTP 403",
+      "http_code": 403,
+      "expected": "422 or 401",
+      "response": "{\"detail\":\"Invalid authentication credentials\"}"
+    }
+  ],
+  "error_handling": [
+    {
+      "test": "Service Down Response",
+      "status": "\ud83d\udccb HTTP 401",
+      "behavior": "503 Service Unavailable or timeout",
+      "actual_response": "{\"detail\":\"Invalid or expired authentication token\"}"
+    },
+    {
+      "test": "Invalid Route",
+      "status": "\ud83d\udccb HTTP 404",
+      "behavior": "404 Not Found",
+      "actual_response": "{\"detail\":\"Not Found\"}"
+    },
+    {
+      "test": "Method Not Allowed",
+      "status": "\ud83d\udccb HTTP 405",
+      "behavior": "405 Method Not Allowed",
+      "actual_response": "{\"detail\":\"Method Not Allowed\"}"
+    }
+  ],
+  "cors": {
+    "Access-Control-Allow-Origin": "http://localhost:3000",
+    "Access-Control-Allow-Methods": "DELETE, GET, HEAD, OPTIONS, PATCH, POST, PUT",
+    "Access-Control-Allow-Headers": "authorization,content-type",
+    "Access-Control-Allow-Credentials": "true"
+  },
+  "timestamp": "2025-05-29T14:24:43.282917"
+}
