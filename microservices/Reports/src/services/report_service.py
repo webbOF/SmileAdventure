@@ -1,16 +1,13 @@
-from datetime import (datetime,  # Removed timedelta, not used in new logic
-                      timezone)
+from datetime import datetime  # Removed timedelta, not used in new logic
+from datetime import timezone
 from typing import Any, Dict, List, Optional
 
 from sqlalchemy import func  # Added for aggregate functions like COUNT, AVG
 from sqlalchemy.orm import Session
 
-from ..models.report_model import (
-    EmotionPattern,
-    GameSession as GameSessionModel,
-    GameSessionData,
-    ReportSummary
-)
+from ..models.report_model import EmotionPattern
+from ..models.report_model import GameSession as GameSessionModel
+from ..models.report_model import GameSessionData, ReportSummary
 
 
 def save_game_session(db: Session, game_data: GameSessionData) -> GameSessionModel:

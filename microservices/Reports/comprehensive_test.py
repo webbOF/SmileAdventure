@@ -4,9 +4,10 @@ Comprehensive Reports API Testing Script
 Tests all endpoints with progressive complexity
 """
 
-import requests
 import json
 from datetime import datetime, timezone
+
+import requests
 
 BASE_URL = "http://localhost:8009"
 

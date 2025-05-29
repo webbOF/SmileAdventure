@@ -3,7 +3,7 @@ from typing import Any, Dict, List
 from fastapi import APIRouter, HTTPException
 
 from ..models.simple_models import (EmotionPattern, GameSessionData,
-                                   ReportSummary)
+                                    ReportSummary)
 from ..services import temp_service as report_service
 
 router = APIRouter()

@@ -5,6 +5,7 @@ Simple test startup for Reports microservice without database dependency
 
 import sys
 from pathlib import Path
+
 import uvicorn
 
 # Add the src directory to Python path

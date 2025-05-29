@@ -1,12 +1,12 @@
-from datetime import datetime, timezone
-from typing import Any, Dict, List, Optional
-
 # Use absolute imports when running directly
 import sys
+from datetime import datetime, timezone
 from pathlib import Path
+from typing import Any, Dict, List, Optional
+
 sys.path.append(str(Path(__file__).parent.parent))
 
-from models.simple_models import GameSessionData, ReportSummary, EmotionPattern
+from models.simple_models import EmotionPattern, GameSessionData, ReportSummary
 
 # Temporary in-memory storage for testing
 game_sessions_storage = []

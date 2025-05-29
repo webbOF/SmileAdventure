@@ -1,7 +1,8 @@
 from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional
 
-from ..models.simple_models import GameSessionData, ReportSummary, EmotionPattern
+from ..models.simple_models import (EmotionPattern, GameSessionData,
+                                    ReportSummary)
 
 # Temporary in-memory storage for testing
 game_sessions_storage = []

@@ -1,14 +1,13 @@
+# Use absolute imports when running directly
+import sys
+from pathlib import Path
 from typing import Any, Dict, List
 
 from fastapi import APIRouter, HTTPException
 
-# Use absolute imports when running directly
-import sys
-from pathlib import Path
 sys.path.append(str(Path(__file__).parent.parent))
 
-from models.simple_models import (EmotionPattern, GameSessionData,
-                                   ReportSummary)
+from models.simple_models import EmotionPattern, GameSessionData, ReportSummary
 from services import temp_service_clean as report_service
 
 router = APIRouter()
