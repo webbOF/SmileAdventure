@@ -1,7 +1,10 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from .routes import game_routes
+from .routes import asd_routes, enhanced_routes, game_routes
+
+# API prefix constant
+API_PREFIX = "/api/v1/game"
 
 app = FastAPI(
     title="SmileAdventure Game Service",
@@ -19,7 +22,13 @@ app.add_middleware(
 )
 
 # Include game routes
-app.include_router(game_routes.router, prefix="/api/v1/game", tags=["Game"])
+app.include_router(game_routes.router, prefix=API_PREFIX, tags=["Game"])
+
+# Include ASD-specific routes
+app.include_router(asd_routes.router, prefix=API_PREFIX, tags=["ASD Support"])
+
+# Include enhanced routes (combines game + ASD features)
+app.include_router(enhanced_routes.router, prefix=API_PREFIX, tags=["Enhanced Game"])
 
 @app.get("/status")
 async def status():

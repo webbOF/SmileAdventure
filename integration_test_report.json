@@ -1,0 +1,98 @@
+{
+  "timestamp": "2025-05-31T13:48:05.929899",
+  "summary": {
+    "total_tests": 15,
+    "passed": 13,
+    "failed": 2,
+    "skipped": 0,
+    "success_rate": 86.66666666666667
+  },
+  "test_results": {
+    "docker_containers_status": {
+      "status": "PASS",
+      "timestamp": "2025-05-31 13:48:04",
+      "details": "All containers running"
+    },
+    "api_gateway_health": {
+      "status": "PASS",
+      "timestamp": "2025-05-31 13:48:04",
+      "details": "Status: 200"
+    },
+    "auth_service_health": {
+      "status": "PASS",
+      "timestamp": "2025-05-31 13:48:04",
+      "details": "Status: 200"
+    },
+    "users_service_health": {
+      "status": "PASS",
+      "timestamp": "2025-05-31 13:48:04",
+      "details": "Status: 200"
+    },
+    "game_service_health": {
+      "status": "PASS",
+      "timestamp": "2025-05-31 13:48:04",
+      "details": "Status: 200"
+    },
+    "reports_service_health": {
+      "status": "PASS",
+      "timestamp": "2025-05-31 13:48:04",
+      "details": "Status: 200"
+    },
+    "user_registration": {
+      "status": "PASS",
+      "timestamp": "2025-05-31 13:48:05",
+      "details": "User created: Integration Test User"
+    },
+    "user_login": {
+      "status": "PASS",
+      "timestamp": "2025-05-31 13:48:05",
+      "details": "Token received, User ID: None"
+    },
+    "user_profile_access": {
+      "status": "FAIL",
+      "timestamp": "2025-05-31 13:48:05",
+      "details": "Status: 404"
+    },
+    "get_scenarios": {
+      "status": "PASS",
+      "timestamp": "2025-05-31 13:48:05",
+      "details": "Retrieved 2 scenarios"
+    },
+    "start_game_session": {
+      "status": "FAIL",
+      "timestamp": "2025-05-31 13:48:05",
+      "details": "0"
+    },
+    "session_persistence": {
+      "status": "PASS",
+      "timestamp": "2025-05-31 13:48:05",
+      "details": "Found 2 persisted sessions"
+    },
+    "invalid_auth_handling": {
+      "status": "PASS",
+      "timestamp": "2025-05-31 13:48:05",
+      "details": "Properly rejected invalid token: 401"
+    },
+    "invalid_input_handling": {
+      "status": "PASS",
+      "timestamp": "2025-05-31 13:48:05",
+      "details": "Properly rejected invalid input: 422"
+    },
+    "performance_baseline": {
+      "status": "PASS",
+      "timestamp": "2025-05-31 13:48:05",
+      "details": "Performance metrics collected"
+    }
+  },
+  "performance_metrics": {
+    "api_gateway_health": 0.07951760292053223,
+    "auth_service_health": 0.06282925605773926,
+    "users_service_health": 0.04083991050720215,
+    "game_service_health": 0.050981760025024414,
+    "reports_service_health": 0.04186439514160156,
+    "user_registration": 0.44724559783935547,
+    "user_login": 0.3576674461364746,
+    "get_scenarios": 0.03873276710510254,
+    "session_persistence": 0.07755374908447266
+  }
+}

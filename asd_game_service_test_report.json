@@ -1,0 +1,119 @@
+{
+  "timestamp": "2025-05-31T15:10:33.629067",
+  "summary": {
+    "total_tests": 27,
+    "passed": 27,
+    "failed": 0,
+    "success_rate": 100.0
+  },
+  "test_results": {
+    "adaptive_session_level1_child": {
+      "passed": true,
+      "details": "Session created for Emma (Level ASDSupportLevel.LEVEL_1)"
+    },
+    "sensory_adjustments_level1_child": {
+      "passed": true,
+      "details": "Sensory adjustments applied: ['audio']"
+    },
+    "adaptive_session_level2_child": {
+      "passed": true,
+      "details": "Session created for Marcus (Level ASDSupportLevel.LEVEL_2)"
+    },
+    "sensory_adjustments_level2_child": {
+      "passed": true,
+      "details": "Sensory adjustments applied: ['audio', 'visual', 'tactile']"
+    },
+    "adaptive_session_level3_child": {
+      "passed": true,
+      "details": "Session created for Alex (Level ASDSupportLevel.LEVEL_3)"
+    },
+    "sensory_adjustments_level3_child": {
+      "passed": true,
+      "details": "Sensory adjustments applied: ['audio', 'visual', 'tactile']"
+    },
+    "overstimulation_detection_normal_activity": {
+      "passed": true,
+      "details": "Detected: False, Expected: False, Indicators: []"
+    },
+    "overstimulation_detection_high_activity_low_errors": {
+      "passed": true,
+      "details": "Detected: False, Expected: False, Indicators: []"
+    },
+    "overstimulation_detection_rapid_clicking_high_errors": {
+      "passed": true,
+      "details": "Detected: True, Expected: True, Indicators: [<OverstimulationIndicator.RAPID_CLICKING: 'rapid_clicking'>, <OverstimulationIndicator.HIGH_ERROR_RATE: 'high_error_rate'>]"
+    },
+    "intervention_recommendation_rapid_clicking_high_errors": {
+      "passed": true,
+      "details": "Recommended intervention: deep_breathing"
+    },
+    "overstimulation_detection_frequent_pauses_confusion": {
+      "passed": true,
+      "details": "Detected: True, Expected: True, Indicators: [<OverstimulationIndicator.LONG_PAUSE: 'long_pause'>, <OverstimulationIndicator.REPEATED_ACTIONS: 'repeated_actions'>, <OverstimulationIndicator.DIFFICULTY_PROGRESSING: 'difficulty_progressing'>, <OverstimulationIndicator.HIGH_ERROR_RATE: 'high_error_rate'>]"
+    },
+    "intervention_recommendation_frequent_pauses_confusion": {
+      "passed": true,
+      "details": "Recommended intervention: deep_breathing"
+    },
+    "calming_intervention_deep_breathing": {
+      "passed": true,
+      "details": "Duration: 60s, Instructions: 5"
+    },
+    "calming_intervention_sensory_break": {
+      "passed": true,
+      "details": "Duration: 120s, Instructions: 5"
+    },
+    "calming_intervention_movement_break": {
+      "passed": true,
+      "details": "Duration: 90s, Instructions: 5"
+    },
+    "environmental_adjustments_level_0.2": {
+      "passed": true,
+      "details": "Adjustments for level 0.2: ['reduce_volume', 'extend_timeouts']"
+    },
+    "environmental_adjustments_level_0.5": {
+      "passed": true,
+      "details": "Adjustments for level 0.5: ['reduce_volume', 'dim_brightness', 'slow_animations', 'extend_timeouts']"
+    },
+    "environmental_adjustments_level_0.8": {
+      "passed": true,
+      "details": "Adjustments for level 0.8: ['reduce_volume', 'dim_brightness', 'slow_animations', 'simplify_interface', 'extend_timeouts']"
+    },
+    "environmental_adjustments_level_1.0": {
+      "passed": true,
+      "details": "Adjustments for level 1.0: ['reduce_volume', 'dim_brightness', 'slow_animations', 'simplify_interface', 'extend_timeouts']"
+    },
+    "recommendation_generation": {
+      "passed": true,
+      "details": "Generated 3 recommendations"
+    },
+    "recommendation_types": {
+      "passed": true,
+      "details": "Types: ['behavioral', 'sensory', 'parent_guidance']"
+    },
+    "recommendation_structure": {
+      "passed": true,
+      "details": "First recommendation: Sensory Environment Optimization"
+    },
+    "full_flow_start": {
+      "passed": true,
+      "details": "Session ce15ed92-140d-41c7-9b6a-76193963621d started"
+    },
+    "full_flow_action_1_monitoring": {
+      "passed": true,
+      "details": "ASD monitoring active: overstimulation=False"
+    },
+    "full_flow_action_2_monitoring": {
+      "passed": true,
+      "details": "ASD monitoring active: overstimulation=False"
+    },
+    "full_flow_action_3_monitoring": {
+      "passed": true,
+      "details": "ASD monitoring active: overstimulation=False"
+    },
+    "full_flow_report": {
+      "passed": true,
+      "details": "Report generated with 2 recommendations"
+    }
+  }
+}
