@@ -24,4 +24,4 @@ COPY . .
 EXPOSE 8001
 
 # Comando di avvio: esegue Uvicorn per avviare l'applicazione FastAPI
-CMD ["uvicorn", "src.main:app", "--host", "0.0.0.0", "--port", "8001"]
+CMD ["uvicorn", "src.main:app", "--host", "0.0.0.0", "--port", "8001", "--reload"]

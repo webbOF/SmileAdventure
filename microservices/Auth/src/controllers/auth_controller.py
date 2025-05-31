@@ -38,11 +38,11 @@ def login(login_data: LoginSchema):
 
 # Rotta per la registrazione
 @router.post("/register")
-def register(user_data: RegisterSchema):
+async def register(user_data: RegisterSchema):
     """
     API endpoint per registrare un nuovo utente.
     """
-    result = register_user(user_data.name, user_data.email, user_data.password, user_data.role)
+    result = await register_user(user_data.name, user_data.email, user_data.password, user_data.role)
     if "error" in result:
         raise HTTPException(status_code=400, detail=result["error"])
     return result

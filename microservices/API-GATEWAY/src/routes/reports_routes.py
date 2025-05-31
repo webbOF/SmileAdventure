@@ -1,16 +1,29 @@
-# filepath: c:\\Users\\arman\\Desktop\\SeriousGame\\microservices\\API-GATEWAY\\src\\routes\\reports_routes.py
+# API Gateway Reports Routes
 import os
 from typing import Any, Dict
 
 import httpx
 from fastapi import APIRouter, Depends, HTTPException, Request
 
-from ..auth.jwt_auth import \
-    get_current_user  # Assuming get_current_user is in jwt_auth.py
+from ..auth.jwt_auth import get_current_user
 
 router = APIRouter()
 
-REPORTS_SERVICE_URL = os.getenv("REPORTS_SERVICE_URL", "http://reports-service:8007/api/v1")
+REPORTS_SERVICE_URL = os.getenv("REPORTS_SERVICE_URL", "http://reports:8007/api/v1")
+
+@router.get("/health", tags=["Reports"])
+async def reports_health():
+    """Health check endpoint for reports service."""
+    try:
+        async with httpx.AsyncClient() as client:
+            reports_status_url = "http://reports:8007/status"
+            response = await client.get(reports_status_url, timeout=5.0)
+            if response.status_code == 200:
+                return {"status": "online", "service": "reports"}
+            else:
+                return {"status": "degraded", "service": "reports", "code": response.status_code}
+    except Exception as e:
+        return {"status": "offline", "service": "reports", "error": str(e)}
 
 @router.post("/game-session", tags=["Reports"])
 async def forward_game_session(

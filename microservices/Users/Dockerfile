@@ -23,5 +23,5 @@ COPY . .
 # Documenta la porta su cui l'applicazione ascolterà
 EXPOSE 8006
 
-# Comando di avvio: esegue Uvicorn per avviare l'applicazione FastAPI
-CMD ["uvicorn", "src.main:app", "--host", "0.0.0.0", "--port", "8006"]
+# Comando di avvio: esegue Uvicorn per avviare l'applicazione FastAPI con reload per sviluppo
+CMD ["uvicorn", "src.main:app", "--host", "0.0.0.0", "--port", "8006", "--reload"]

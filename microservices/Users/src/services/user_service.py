@@ -52,6 +52,29 @@ def create_user(db: Session, user_data: UserCreate) -> User:
     db.refresh(db_user)
     return db_user
 
+def create_user_with_id(db: Session, user_data: UserCreate, user_id: int) -> User:
+    """Create a user with a specific ID for Auth service synchronization."""
+    hashed_password = hash_password(user_data.password)
+    db_user = User(
+        id=user_id,  # Set specific ID
+        email=user_data.email,
+        name=user_data.name,
+        surname=user_data.surname,
+        user_type=user_data.user_type,
+        gender=user_data.gender,
+        birth_date=user_data.birth_date,
+        phone=user_data.phone,
+        address=user_data.address,
+        city=getattr(user_data, 'city', None),
+        postal_code=getattr(user_data, 'postal_code', None),
+        country=getattr(user_data, 'country', 'Italia'),
+        hashed_password=hashed_password
+    )
+    db.add(db_user)
+    db.commit()
+    db.refresh(db_user)
+    return db_user
+
 def create_professional(db: Session, professional_data: ProfessionalCreate) -> User:
     hashed_password = hash_password(professional_data.password)
     db_professional = User(

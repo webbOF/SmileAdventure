@@ -2,11 +2,13 @@
 # Questo file corregge il problema dell'utilizzo del campo "password" invece di "hashed_password"
 # e corregge la funzione register_user
 
-from datetime import datetime, timedelta, timezone
-from jose import jwt, JWTError
-from src.models.user_model import User, SessionLocal
-from passlib.context import CryptContext
 import os
+from datetime import datetime, timedelta, timezone
+
+import httpx
+from jose import JWTError, jwt
+from passlib.context import CryptContext
+from src.models.user_model import SessionLocal, User
 
 # Configurazione per hashing delle password
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
@@ -15,6 +17,9 @@ pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 SECRET_KEY = os.getenv("JWT_SECRET_KEY", "your_secret_key_development_only")
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv("JWT_EXPIRE_MINUTES", "30"))
+
+# Users service URL for synchronization
+USERS_SERVICE_URL = os.getenv("USERS_SERVICE_URL", "http://users:8006")
 
 def hash_password(password: str) -> str:
     """Crea un hash per la password."""
@@ -51,10 +56,21 @@ def refresh_token(token: str):
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         email: str = payload.get("sub")
+        user_id: int = payload.get("user_id")
         role: str = payload.get("role")
-        if email is None or role is None:
+        name: str = payload.get("name")
+        
+        if email is None or role is None or user_id is None:
             return {"error": "Invalid token"}
-        new_token = create_access_token({"sub": email, "role": role})
+        
+        # Includi tutti i dati dell'utente nel nuovo token
+        new_token_data = {
+            "sub": email,
+            "user_id": user_id,
+            "role": role,
+            "name": name
+        }
+        new_token = create_access_token(new_token_data)
         return new_token
     except JWTError:
         return {"error": "Invalid token"}
@@ -70,13 +86,19 @@ def authenticate_user(email: str, password: str):
         if not verify_password(password, user.hashed_password):
             return {"error": "Credenziali non valide", "code": "invalid_credentials"}
         
-        # Genera il token JWT
-        token = create_access_token({"sub": user.email, "role": user.role})
+        # Genera il token JWT con user_id incluso
+        token_data = {
+            "sub": user.email,
+            "user_id": user.id,
+            "role": user.role,
+            "name": user.name
+        }
+        token = create_access_token(token_data)
         return {"access_token": token, "token_type": "bearer", "user": {"id": user.id, "name": user.name, "role": user.role}}
     finally:
         db.close()
 
-def register_user(name: str, email: str, password: str, role: str):
+async def register_user(name: str, email: str, password: str, role: str):
     """Registra un nuovo utente."""
     db = SessionLocal()
     try:
@@ -92,9 +114,35 @@ def register_user(name: str, email: str, password: str, role: str):
         db.add(new_user)
         db.commit()
         db.refresh(new_user)
+        
+        # Synchronize with Users service
+        sync_result = await sync_user_with_users_service(new_user.id, new_user.email, new_user.name, new_user.role)
+        if not sync_result:
+            print(f"Warning: Failed to sync user {new_user.id} with Users service")
+        
         return {"status": "success", "user_id": new_user.id}
     except Exception as e:
         db.rollback()
         return {"error": f"Database error: {str(e)}"}
     finally:
         db.close()
+
+async def sync_user_with_users_service(user_id: int, email: str, name: str, role: str) -> bool:
+    """Synchronize user data with Users service after registration."""
+    try:
+        async with httpx.AsyncClient() as client:
+            payload = {
+                "user_id": user_id,
+                "email": email,
+                "name": name,
+                "role": role
+            }
+            response = await client.post(
+                f"{USERS_SERVICE_URL}/api/v1/users/internal/sync-user",
+                json=payload,
+                timeout=10.0
+            )
+            return response.status_code in [200, 201]
+    except Exception as e:
+        print(f"Failed to sync user with Users service: {e}")
+        return False

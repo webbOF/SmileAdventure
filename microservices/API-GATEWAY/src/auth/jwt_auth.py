@@ -10,7 +10,7 @@ from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 security = HTTPBearer()
 
 # Auth service URL
-AUTH_SERVICE_URL = os.getenv("AUTH_SERVICE_URL", "http://auth-service:8001/api/v1")
+AUTH_SERVICE_URL = os.getenv("AUTH_SERVICE_URL", "http://auth:8001/api/v1")
 
 async def verify_token_with_auth_service(token: str) -> Dict[str, Any]:
     """
@@ -50,7 +50,17 @@ async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(s
             headers={"WWW-Authenticate": "Bearer"},
         )
     
-    return result.get("payload", result)
+    # Extract user data from token payload for easier access
+    payload = result.get("payload", {})
+    user_data = {
+        "email": payload.get("sub"),
+        "user_id": payload.get("user_id"),
+        "role": payload.get("role"),
+        "name": payload.get("name"),
+        "token_payload": payload
+    }
+    
+    return user_data
 
 async def get_current_active_user(credentials: HTTPAuthorizationCredentials = Depends(security)) -> Dict[str, Any]:
     """

@@ -1,3 +1,4 @@
+import os
 from typing import Any, Dict
 
 import httpx
@@ -5,7 +6,7 @@ from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="auth/login")
-AUTH_SERVICE_URL = "http://auth-service:8001/api/v1"
+AUTH_SERVICE_URL = os.getenv("AUTH_SERVICE_URL", "http://auth:8001/api/v1")
 
 async def get_current_user(token: str = Depends(oauth2_scheme)) -> Dict[str, Any]:
     """Verifica il token JWT e restituisce l'utente corrente."""

@@ -4,6 +4,8 @@ services:
     container_name: smileadventure-api-gateway
     ports:
       - "8000:8000"
+    volumes:
+      - ./microservices/API-GATEWAY/src:/app/src
     depends_on:
       auth:
         condition: service_healthy
@@ -11,12 +13,15 @@ services:
         condition: service_healthy
       reports:
         condition: service_healthy
+      game:
+        condition: service_healthy
       postgres-db:
         condition: service_healthy
     environment:
       - AUTH_SERVICE_URL=http://auth:8001/api/v1
       - USERS_SERVICE_URL=http://users:8006/api/v1
       - REPORTS_SERVICE_URL=http://reports:8007/api/v1
+      - GAME_SERVICE_URL=http://game:8005/api/v1
       # La JWT_SECRET_KEY non è usata direttamente qui, ma nel servizio Auth
     networks:
       - smileadventure-network
@@ -32,6 +37,8 @@ services:
     container_name: smileadventure-auth-service
     ports:
       - "8001:8001"
+    volumes:
+      - ./microservices/Auth/src:/app/src
     depends_on:
       postgres-db:
         condition: service_healthy
@@ -54,6 +61,9 @@ services:
     container_name: smileadventure-users-service
     ports:
       - "8006:8006"
+    # Aggiunto volume per sviluppo - auto-reload
+    volumes:
+      - ./microservices/Users/src:/app/src
     depends_on:
       postgres-db:
         condition: service_healthy
@@ -74,6 +84,8 @@ services:
     container_name: smileadventure-reports-service
     ports:
       - "8007:8007"
+    volumes:
+      - ./microservices/Reports/src:/app/src
     depends_on:
       postgres-db:
         condition: service_healthy
@@ -90,6 +102,27 @@ services:
       start_period: 10s
     # volumes: # Removed SQLite volume, data will be in postgres-db
       # - ./Reports/data:/app/data 
+
+  game:
+    build: ./microservices/Game
+    container_name: smileadventure-game-service
+    ports:
+      - "8005:8005"
+    volumes:
+      - ./microservices/Game/src:/app/src
+    depends_on:
+      postgres-db:
+        condition: service_healthy
+    environment:
+      - DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres-db:5432/${POSTGRES_DB}
+    networks:
+      - smileadventure-network
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8005/status').read()"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
 
   postgres-db:
     image: postgres:15-alpine

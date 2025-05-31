@@ -9,6 +9,21 @@ router = APIRouter()
 # URL del servizio di autenticazione
 AUTH_SERVICE_URL = os.getenv("AUTH_SERVICE_URL", "http://auth:8001/api/v1")
 
+@router.get("/health")
+async def health_check():
+    """Controlla lo stato del servizio di autenticazione."""
+    try:
+        async with httpx.AsyncClient(timeout=5.0) as client:
+            # Use the base service URL without /api/v1 for health check
+            auth_base_url = os.getenv("AUTH_SERVICE_URL", "http://auth:8001/api/v1").replace("/api/v1", "")
+            response = await client.get(f"{auth_base_url}/status")
+            if response.status_code == 200:
+                return {"status": "healthy", "service": "auth", "timestamp": response.json()}
+            else:
+                return {"status": "unhealthy", "service": "auth", "code": response.status_code}
+    except Exception as e:
+        return {"status": "unhealthy", "service": "auth", "error": str(e)}
+
 @router.post("/login")
 async def login(user_data: Dict[str, Any]):
     """Effettua il login di un utente."""

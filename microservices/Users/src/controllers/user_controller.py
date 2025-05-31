@@ -1,4 +1,4 @@
-from typing import List, Optional
+from typing import Dict, List, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
@@ -30,12 +30,21 @@ def create_professional(professional: ProfessionalCreate, db: Session = Depends(
 
 @router.get("/users/", response_model=List[UserInDB])
 def read_users(
-    skip: int = 0, 
-    limit: int = 100, 
-    user_type: Optional[str] = None,
+    skip: int = Query(0), 
+    limit: int = Query(100), 
+    user_type: Optional[str] = Query(None),
+    email: Optional[str] = Query(None),
     db: Session = Depends(get_db)
 ):
-    """Recupera l'elenco degli utenti."""
+    """Recupera l'elenco degli utenti o un utente specifico per email."""
+    # If email is provided, return specific user
+    if email:
+        db_user = user_service.get_user_by_email(db, email=email)
+        if db_user is None:
+            raise HTTPException(status_code=404, detail="User not found")
+        return [db_user]  # Return as list to match the response model
+    
+    # Otherwise return list of users
     users = user_service.get_users(db, skip=skip, limit=limit, user_type=user_type)
     return users
 
@@ -163,3 +172,46 @@ def delete_specialty(specialty_id: int, db: Session = Depends(get_db)):
     if not success:
         raise HTTPException(status_code=404, detail="Specialty not found")
     return {"message": "Specialty deleted successfully"}
+
+# Internal endpoint for Auth service synchronization
+@router.post("/users/internal/sync-user", response_model=UserInDB)
+def sync_user_from_auth(
+    sync_data: dict,
+    db: Session = Depends(get_db)
+):
+    """
+    Internal endpoint to synchronize user data from Auth service.
+    Creates a user in Users service with the same ID as Auth service.
+    """
+    user_id = sync_data.get("user_id")
+    email = sync_data.get("email")
+    name = sync_data.get("name")
+    role = sync_data.get("role")
+    
+    # Check if user already exists
+    existing_user = user_service.get_user(db, user_id=user_id)
+    if existing_user:
+        return existing_user
+    
+    # Map Auth service roles to Users service user types
+    role_mapping = {
+        "student": "child",
+        "parent": "parent", 
+        "professional": "professional",
+        "admin": "admin"
+    }
+    
+    user_type = role_mapping.get(role, "child")
+    
+    # Create user data for Users service
+    user_data = UserCreate(
+        email=email,
+        name=name,
+        surname="",  # Will be updated later if needed
+        user_type=user_type,
+        password="auth_service_managed"  # Placeholder since Auth service manages authentication
+    )
+    
+    # Create user with specific ID from Auth service
+    created_user = user_service.create_user_with_id(db, user_data=user_data, user_id=user_id)
+    return created_user
