@@ -10,3 +10,4 @@ python-multipart>=0.0.5
 pytest>=6.2.5
 eralchemy2==1.3.6
 pygraphviz==1.10
+numpy>=1.21.0

@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from .routes import asd_routes, enhanced_routes, game_routes
+from .routes import asd_routes, enhanced_routes, game_routes, progress_routes
 
 # API prefix constant
 API_PREFIX = "/api/v1/game"
@@ -29,6 +29,9 @@ app.include_router(asd_routes.router, prefix=API_PREFIX, tags=["ASD Support"])
 
 # Include enhanced routes (combines game + ASD features)
 app.include_router(enhanced_routes.router, prefix=API_PREFIX, tags=["Enhanced Game"])
+
+# Include progress tracking routes
+app.include_router(progress_routes.router, prefix=API_PREFIX, tags=["Progress Tracking"])
 
 @app.get("/status")
 async def status():

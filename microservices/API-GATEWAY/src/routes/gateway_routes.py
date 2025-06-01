@@ -15,6 +15,8 @@ GAME_SERVICE_URL = os.getenv("GAME_SERVICE_URL", "http://game:8005/api/v1")
 # Include i router specifici per ciascun servizio
 from .auth_routes import router as auth_router
 from .game_routes import router as game_router  # Game routes implementation
+from .progress_routes import \
+    router as progress_router  # Progress tracking routes
 from .reports_routes import \
     router as reports_router  # Decommentato e importato
 from .user_routes import router as user_router
@@ -24,6 +26,7 @@ router.include_router(auth_router, prefix="/auth", tags=["Authentication"])
 router.include_router(user_router, prefix="/users", tags=["Users"])
 router.include_router(reports_router, prefix="/reports", tags=["Reports"]) # Decommentato e incluso
 router.include_router(game_router, prefix="/game", tags=["Game"]) # Game routes included
+router.include_router(progress_router, prefix="/progress", tags=["Progress Tracking"]) # Progress tracking routes
 
 # Endpoint di health check per tutti i servizi
 @router.get("/health", tags=["System"])

@@ -214,3 +214,11 @@ yarn-error.log
 # Docker
 docker-compose.override.yml
 /docker/data/
+
+# Generated reports and validation files
+*.json
+*_report_*.json
+*_validation_*.json
+*_assessment*.json
+task*_*.json
+progress_tracking_*.json
