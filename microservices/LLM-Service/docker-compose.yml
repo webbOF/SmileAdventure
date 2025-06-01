@@ -1,0 +1,50 @@
+version: '3.8'
+
+services:
+  llm-service:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: llm-service
+    ports:
+      - "8004:8004"
+    environment:
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - OPENAI_MODEL=${OPENAI_MODEL:-gpt-4}
+      - OPENAI_TEMPERATURE=${OPENAI_TEMPERATURE:-0.3}
+      - OPENAI_MAX_TOKENS=${OPENAI_MAX_TOKENS:-2000}
+      - SERVICE_PORT=8004
+      - DEBUG=${DEBUG:-false}
+      - LOG_LEVEL=${LOG_LEVEL:-INFO}
+      - ENABLE_CACHING=${ENABLE_CACHING:-true}
+      - CACHE_TTL_SECONDS=${CACHE_TTL_SECONDS:-3600}
+    volumes:
+      - ./logs:/app/logs
+    restart: unless-stopped
+    networks:
+      - serious-game-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8004/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # Optional Redis for advanced caching
+  redis:
+    image: redis:7-alpine
+    container_name: llm-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - serious-game-network
+    restart: unless-stopped
+
+volumes:
+  redis_data:
+
+networks:
+  serious-game-network:
+    external: true
