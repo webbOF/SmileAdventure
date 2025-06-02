@@ -11,7 +11,7 @@ DATABASE_URL = os.getenv("REPORTS_DATABASE_URL")
 
 if not DATABASE_URL:
     # Set default for local development
-    DATABASE_URL = "postgresql://postgres:password@localhost:5432/smile_adventure_reports"
+    DATABASE_URL = "postgresql://smileadventureuser:smileadventurepass@localhost:5433/smileadventure"
     print(f"⚠️  REPORTS_DATABASE_URL not set, using default: {DATABASE_URL}")
 
 # Creazione del motore di connessione al database

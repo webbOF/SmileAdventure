@@ -168,22 +168,22 @@ def test_database_setup():
     print("🗄️ Testing Database Setup...")
     
     try:
-        # Check if database file exists
-        db_file = SERVICE_DIR / "data" / "game.db"
-        db_exists = db_file.exists()
+        # Test PostgreSQL database connection
+        import os
+        database_url = os.getenv("DATABASE_URL", "postgresql://postgres:password@localhost:5432/smileadventure_game")
         
         # Try to import database session
         sys.path.insert(0, str(SERVICE_DIR / "src"))
         from db.session import Base, engine
         from models.game_model import SensoryProfile
 
-        # Try to create tables
+        # Test database connection and try to create tables
         Base.metadata.create_all(bind=engine)
         
         return {
             "status": "✅ SUCCESS",
-            "db_file_exists": db_exists,
-            "db_path": str(db_file),
+            "database_url": database_url,
+            "connection_type": "PostgreSQL",
             "tables_created": True,
             "models_imported": True
         }
@@ -191,7 +191,7 @@ def test_database_setup():
         return {
             "status": "❌ ERROR",
             "error": str(e),
-            "db_file_exists": False,
+            "connection_type": "PostgreSQL",
             "tables_created": False,
             "models_imported": False
         }
@@ -268,13 +268,13 @@ def generate_comprehensive_report():
         print(f"   Pydantic Schemas:  {models.get('schemas_count', 0)}/3+ defined")
     else:
         print("   ❌ Models file missing!")
-    
-    # 4. Database Setup
+      # 4. Database Setup
     print("\n4. 🗄️ DATABASE CONFIGURATION")
     db_status = test_database_setup()
     print(f"   Status: {db_status['status']}")
     if 'error' not in db_status:
-        print(f"   DB File Exists:    {db_status['db_file_exists']}")
+        print(f"   Database URL:      {db_status.get('database_url', 'Not set')}")
+        print(f"   Connection Type:   {db_status.get('connection_type', 'Unknown')}")
         print(f"   Tables Created:    {db_status['tables_created']}")
         print(f"   Models Imported:   {db_status['models_imported']}")
     else:

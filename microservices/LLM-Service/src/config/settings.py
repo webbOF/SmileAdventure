@@ -23,13 +23,12 @@ class Settings(BaseSettings):
     DEFAULT_ANALYSIS_DEPTH: str = "comprehensive"
     ENABLE_CACHING: bool = True
     CACHE_TTL_SECONDS: int = 3600
-    
-    # Rate limiting
+      # Rate limiting
     MAX_REQUESTS_PER_MINUTE: int = 60
     MAX_TOKENS_PER_MINUTE: int = 90000
     
-    # Database (if needed for caching)
-    DATABASE_URL: str = os.getenv("DATABASE_URL", "sqlite:///./llm_service.db")
+    # Database (PostgreSQL for caching and analysis data)
+    DATABASE_URL: str = os.getenv("DATABASE_URL", "postgresql://postgres:password@localhost:5432/smileadventure_llm")
     
     # External services
     GAME_SERVICE_URL: str = os.getenv("GAME_SERVICE_URL", "http://localhost:8002")
