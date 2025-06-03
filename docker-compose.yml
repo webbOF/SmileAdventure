@@ -29,7 +29,7 @@ services:
     networks:
       - smileadventure-network
     healthcheck:
-      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/status').read()"]
+      test: [ "CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/status').read()" ]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -53,7 +53,7 @@ services:
     networks:
       - smileadventure-network
     healthcheck:
-      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8001/status').read()"]
+      test: [ "CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8001/status').read()" ]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -76,7 +76,7 @@ services:
     networks:
       - smileadventure-network
     healthcheck:
-      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8006/status').read()"]
+      test: [ "CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8006/status').read()" ]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -98,12 +98,12 @@ services:
     networks:
       - smileadventure-network
     healthcheck:
-      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8007/status').read()"]
+      test: [ "CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8007/status').read()" ]
       interval: 30s
       timeout: 10s
       retries: 3
       start_period: 10s
-    # volumes: # Removed SQLite volume, data will be in postgres-db
+      # volumes: # Removed SQLite volume, data will be in postgres-db
       # - ./Reports/data:/app/data 
 
   game:
@@ -121,7 +121,7 @@ services:
     networks:
       - smileadventure-network
     healthcheck:
-      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8005/status').read()"]
+      test: [ "CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8005/status').read()" ]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -148,7 +148,7 @@ services:
     networks:
       - smileadventure-network
     healthcheck:
-      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8004/health').read()"]
+      test: [ "CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8004/health').read()" ]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -162,7 +162,7 @@ services:
     networks:
       - smileadventure-network
     healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
+      test: [ "CMD", "redis-cli", "ping" ]
       interval: 5s
       timeout: 3s
       retries: 3
@@ -177,12 +177,13 @@ services:
       - POSTGRES_DB=${POSTGRES_DB} # Legge dal .env
     volumes:
       - postgres_data:/var/lib/postgresql/data
-    ports: # Optional: expose port for direct access/debugging
-      - "5433:5432" 
+    ports:
+      # Optional: expose port for direct access/debugging
+      - "5433:5432"
     networks:
       - smileadventure-network
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U smileadventureuser -d smileadventure -q"]
+      test: [ "CMD-SHELL", "pg_isready -U smileadventureuser -d smileadventure -q" ]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -215,7 +216,7 @@ services:
     volumes:
       - /app/node_modules
       - ./frontend/docker-react:/app
-    command: ['npm', 'run', 'test']
+    command: [ 'npm', 'run', 'test' ]
     networks:
       - smileadventure-network
 
@@ -247,7 +248,8 @@ services:
     volumes:
       - ./:/app
     working_dir: /app
-    environment: # Passa le credenziali del DB anche a db-init se necessario per gli script
+    environment:
+      # Passa le credenziali del DB anche a db-init se necessario per gli script
       - DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres-db:5432/${POSTGRES_DB}
       - PYTHONPATH=/app/microservices # Aggiunto PYTHONPATH per risolvere gli import
     command: >
@@ -258,12 +260,14 @@ services:
       "
     networks:
       - smileadventure-network
-    depends_on: # db-init should wait for postgres-db
+    depends_on:
+      # db-init should wait for postgres-db
       - postgres-db
 
 networks:
   smileadventure-network:
     driver: bridge
 
-volumes: # Added named volume for PostgreSQL data
+volumes:
+  # Added named volume for PostgreSQL data
   postgres_data:

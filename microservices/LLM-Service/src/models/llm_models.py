@@ -183,3 +183,67 @@ class AnalysisConfig(BaseModel):
     include_recommendations: bool = True
     focus_areas: List[str] = Field(default_factory=list)
     analysis_depth: str = Field(default="comprehensive", description="quick, standard, or comprehensive")
+
+# ===========================
+# CLINICAL ANALYSIS MODELS
+# ===========================
+
+class ClinicalEmotionalPatterns(BaseModel):
+    """Clinical emotional pattern analysis response"""
+    analysis_period_days: int
+    total_sessions_analyzed: int
+    emotional_regulation_assessment: Dict[str, Any] = Field(default_factory=dict)
+    pattern_significance: Dict[str, Any] = Field(default_factory=dict)
+    therapeutic_opportunities: List[str] = Field(default_factory=list)
+    risk_factors: List[str] = Field(default_factory=list)
+    clinical_recommendations: List[str] = Field(default_factory=list)
+    quantitative_metrics: Dict[str, float] = Field(default_factory=dict)
+    confidence_score: float = Field(..., ge=0.0, le=1.0)
+    clinical_notes: Optional[str] = None
+
+class InterventionSuggestion(BaseModel):
+    """Individual intervention suggestion"""
+    intervention_type: str
+    description: str
+    priority_level: str = Field(..., description="immediate, short-term, or long-term")
+    implementation_guide: List[str] = Field(default_factory=list)
+    expected_outcomes: List[str] = Field(default_factory=list)
+    evidence_level: str = Field(..., description="high, moderate, or emerging")
+    feasibility_score: float = Field(..., ge=0.0, le=1.0)
+
+class ClinicalInterventionSuggestions(BaseModel):
+    """Clinical intervention suggestions response"""
+    immediate_interventions: List[InterventionSuggestion] = Field(default_factory=list)
+    short_term_recommendations: List[InterventionSuggestion] = Field(default_factory=list)
+    long_term_goals: List[InterventionSuggestion] = Field(default_factory=list)
+    parent_coaching_guidance: List[str] = Field(default_factory=list)
+    therapeutic_focus_areas: List[str] = Field(default_factory=list)
+    environmental_modifications: List[str] = Field(default_factory=list)
+    overall_effectiveness_prediction: float = Field(..., ge=0.0, le=1.0)
+    implementation_timeline: Dict[str, Any] = Field(default_factory=dict)
+    confidence_score: float = Field(..., ge=0.0, le=1.0)
+
+class ProgressMilestone(BaseModel):
+    """Individual progress milestone"""
+    milestone_type: str
+    description: str
+    achievement_level: float = Field(..., ge=0.0, le=1.0)
+    target_timeline: Optional[str] = None
+    supporting_evidence: List[str] = Field(default_factory=list)
+
+class ClinicalProgressIndicators(BaseModel):
+    """Clinical progress assessment response"""
+    assessment_period_days: int
+    milestone_achievements: List[ProgressMilestone] = Field(default_factory=list)
+    developmental_trajectory: Dict[str, Any] = Field(default_factory=dict)
+    risk_factor_assessment: Dict[str, Any] = Field(default_factory=dict)
+    clinical_significance: Dict[str, Any] = Field(default_factory=dict)
+    progress_predictions: Dict[str, Any] = Field(default_factory=dict)
+    intervention_effectiveness: Dict[str, float] = Field(default_factory=dict)
+    recommended_adjustments: List[str] = Field(default_factory=list)
+    confidence_score: float = Field(..., ge=0.0, le=1.0)
+    clinical_notes: Optional[str] = None
+
+# ===========================
+# ANALYSIS CONFIGURATION
+# ===========================

@@ -15,9 +15,13 @@ from .models.llm_models import (BehavioralAnalysis, EmotionalAnalysis,
                                 GameSessionData, LLMAnalysisRequest,
                                 LLMAnalysisResponse, LLMHealthResponse,
                                 ProgressAnalysis, Recommendations,
-                                SessionInsights)
+                                SessionInsights, ClinicalEmotionalPatterns,
+                                ClinicalInterventionSuggestions,
+                                ClinicalProgressIndicators)
 from .monitoring import metrics, metrics_middleware, setup_logging
 from .services.llm_service import LLMService
+from .services.clinical_analysis import ClinicalAnalysisService
+from .routes import realtime_websocket_routes
 
 # Initialize settings and services
 settings = get_settings()
@@ -49,14 +53,19 @@ app.middleware("http")(metrics_middleware)
 app.middleware("http")(security_headers_middleware)
 app.middleware("http")(rate_limit_middleware)
 
+# Include real-time WebSocket routes
+app.include_router(realtime_websocket_routes.router, prefix="/api/v1")
+
 # Initialize LLM service
 llm_service = LLMService()
+clinical_analysis_service = ClinicalAnalysisService()
 
 @app.on_event("startup")
 async def startup_event():
     """Initialize services on startup"""
     logger.info("Starting LLM Service...")
     await llm_service.initialize()
+    await clinical_analysis_service.initialize()
     logger.info("LLM Service started successfully")
 
 @app.on_event("shutdown")
@@ -246,6 +255,170 @@ async def get_metrics(auth: dict = Depends(authenticate_request)):
         raise HTTPException(
             status_code=500,
             detail=f"Failed to retrieve metrics: {str(e)}"
+        )
+
+# ===========================
+# CLINICAL ANALYSIS ENDPOINTS
+# ===========================
+
+@app.post("/clinical/analyze-emotional-patterns", response_model=ClinicalEmotionalPatterns)
+async def clinical_analyze_emotional_patterns(
+    session_history: List[GameSessionData],
+    auth: dict = Depends(authenticate_request)
+):
+    """
+    Perform deep clinical emotional pattern analysis
+    
+    Provides comprehensive clinical insights including:
+    - Emotional regulation assessment with clinical significance
+    - Therapeutic opportunities and intervention windows  
+    - Risk factor identification and protective factors
+    - Evidence-based clinical recommendations
+    """
+    try:
+        if not session_history:
+            raise HTTPException(
+                status_code=400,
+                detail="Session history is required for clinical analysis"
+            )
+        
+        logger.info(f"Clinical emotional pattern analysis for {len(session_history)} sessions")
+        
+        analysis_result = await clinical_analysis_service.analyze_emotional_patterns(session_history)
+        
+        logger.info("Clinical emotional pattern analysis completed successfully")
+        return ClinicalEmotionalPatterns(**analysis_result)
+        
+    except Exception as e:
+        logger.error(f"Error in clinical emotional pattern analysis: {str(e)}")
+        raise HTTPException(
+            status_code=500,
+            detail=f"Failed to perform clinical emotional analysis: {str(e)}"
+        )
+
+@app.post("/clinical/generate-intervention-suggestions", response_model=ClinicalInterventionSuggestions)
+async def clinical_generate_intervention_suggestions(
+    analysis_results: Dict[str, Any],
+    auth: dict = Depends(authenticate_request)
+):
+    """
+    Generate personalized clinical intervention suggestions
+    
+    Provides evidence-based interventions including:
+    - ASD-specific therapeutic recommendations with priority levels
+    - Parent coaching guidance and implementation strategies
+    - Environmental modifications and support strategies
+    - Effectiveness predictions and implementation timelines
+    """
+    try:
+        if not analysis_results:
+            raise HTTPException(
+                status_code=400,
+                detail="Analysis results are required for intervention suggestions"
+            )
+        
+        logger.info("Generating clinical intervention suggestions")
+        
+        intervention_result = await clinical_analysis_service.generate_intervention_suggestions(analysis_results)
+        
+        logger.info("Clinical intervention suggestions generated successfully")
+        return ClinicalInterventionSuggestions(**intervention_result)
+        
+    except Exception as e:
+        logger.error(f"Error generating clinical intervention suggestions: {str(e)}")
+        raise HTTPException(
+            status_code=500,
+            detail=f"Failed to generate intervention suggestions: {str(e)}"
+        )
+
+@app.post("/clinical/assess-progress-indicators", response_model=ClinicalProgressIndicators)
+async def clinical_assess_progress_indicators(
+    metrics: Dict[str, Any],
+    auth: dict = Depends(authenticate_request)
+):
+    """
+    Assess clinical progress indicators and milestones
+    
+    Provides comprehensive progress assessment including:
+    - Milestone achievement recognition and developmental trajectory
+    - Risk factor assessment and clinical significance evaluation
+    - Intervention effectiveness tracking and adjustment recommendations
+    - Progress predictions and evidence-based clinical insights
+    """
+    try:
+        if not metrics:
+            raise HTTPException(
+                status_code=400,
+                detail="Metrics data is required for progress assessment"
+            )
+        
+        logger.info("Assessing clinical progress indicators")
+        
+        progress_result = await clinical_analysis_service.assess_progress_indicators(metrics)
+        
+        logger.info("Clinical progress assessment completed successfully")
+        return ClinicalProgressIndicators(**progress_result)
+        
+    except Exception as e:
+        logger.error(f"Error in clinical progress assessment: {str(e)}")
+        raise HTTPException(
+            status_code=500,
+            detail=f"Failed to assess progress indicators: {str(e)}"
+        )
+
+@app.post("/clinical/comprehensive-analysis")
+async def clinical_comprehensive_analysis(
+    session_history: List[GameSessionData],
+    auth: dict = Depends(authenticate_request)
+):
+    """
+    Perform comprehensive clinical analysis combining all three methods
+    
+    Returns a complete clinical assessment including:
+    - Emotional pattern analysis with clinical insights
+    - Personalized intervention suggestions with implementation guides
+    - Progress indicators assessment with milestone tracking
+    """
+    try:
+        if not session_history:
+            raise HTTPException(
+                status_code=400,
+                detail="Session history is required for comprehensive analysis"
+            )
+        
+        logger.info(f"Comprehensive clinical analysis for {len(session_history)} sessions")
+        
+        # Step 1: Analyze emotional patterns
+        emotional_analysis = await clinical_analysis_service.analyze_emotional_patterns(session_history)
+        
+        # Step 2: Generate intervention suggestions based on emotional analysis
+        intervention_suggestions = await clinical_analysis_service.generate_intervention_suggestions(emotional_analysis)
+        
+        # Step 3: Assess progress indicators using combined metrics
+        combined_metrics = {
+            **emotional_analysis.get("quantitative_metrics", {}),
+            "intervention_recommendations": len(intervention_suggestions.get("immediate_interventions", [])),
+            "therapeutic_opportunities": len(emotional_analysis.get("therapeutic_opportunities", [])),
+            "risk_factors_identified": len(emotional_analysis.get("risk_factors", []))
+        }
+        progress_assessment = await clinical_analysis_service.assess_progress_indicators(combined_metrics)
+        
+        comprehensive_result = {
+            "emotional_patterns": emotional_analysis,
+            "intervention_suggestions": intervention_suggestions,
+            "progress_indicators": progress_assessment,
+            "analysis_timestamp": datetime.now().isoformat(),
+            "sessions_analyzed": len(session_history)
+        }
+        
+        logger.info("Comprehensive clinical analysis completed successfully")
+        return comprehensive_result
+        
+    except Exception as e:
+        logger.error(f"Error in comprehensive clinical analysis: {str(e)}")
+        raise HTTPException(
+            status_code=500,
+            detail=f"Failed to perform comprehensive clinical analysis: {str(e)}"
         )
 
 if __name__ == "__main__":
