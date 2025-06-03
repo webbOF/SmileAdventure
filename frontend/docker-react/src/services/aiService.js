@@ -1,3 +1,4 @@
+// aiService.js
 // AI Service - Integration with LLM Service
 // Handles real-time AI analysis, insights, and recommendations
 
@@ -165,6 +166,7 @@ class AIService {
    * Analyze game session data for comprehensive insights
    * @param {Object} sessionData - Game session data
    * @param {Object} options - Analysis options
+   * @returns {Promise<Object>} Analysis results
    */
   static async analyzeSession(sessionData, options = {}) {
     try {
@@ -193,6 +195,7 @@ class AIService {
   /**
    * Analyze emotional patterns in real-time
    * @param {Object} emotionalData - Emotional data from session
+   * @returns {Promise<Object>} Emotional analysis
    */
   static async analyzeEmotionalPatterns(emotionalData) {
     try {
@@ -224,6 +227,7 @@ class AIService {
   /**
    * Analyze behavioral patterns
    * @param {Object} behavioralData - Behavioral data from session
+   * @returns {Promise<Object>} Behavioral analysis
    */
   static async analyzeBehavioralPatterns(behavioralData) {
     try {
@@ -255,6 +259,7 @@ class AIService {
    * Generate AI-powered recommendations
    * @param {Object} sessionData - Session data for context
    * @param {Object} context - Additional context (child profile, history, etc.)
+   * @returns {Promise<Object>} Recommendations
    */
   static async generateRecommendations(sessionData, context = {}) {
     try {
@@ -290,8 +295,9 @@ class AIService {
   /**
    * Analyze progress across multiple sessions
    * @param {Array} sessionHistory - Array of session data
-   * @param {number} childId - Child ID
+   * @param {number|string} childId - Child ID
    * @param {number} timeframeDays - Analysis timeframe
+   * @returns {Promise<Object>} Progress analysis
    */
   static async analyzeProgress(sessionHistory, childId, timeframeDays = 30) {
     try {
@@ -327,6 +333,7 @@ class AIService {
   /**
    * Start real-time monitoring for a session
    * @param {string} sessionId - Session ID to monitor
+   * @returns {Promise<Object>} Monitoring status
    */
   static async startMonitoring(sessionId) {
     try {
@@ -348,6 +355,7 @@ class AIService {
   /**
    * Stop real-time monitoring for a session
    * @param {string} sessionId - Session ID to stop monitoring
+   * @returns {Promise<Object>} Monitoring status
    */
   static async stopMonitoring(sessionId) {
     try {
@@ -367,6 +375,7 @@ class AIService {
   
   /**
    * Check AI service health
+   * @returns {Promise<Object>} Health status
    */
   static async checkHealth() {
     try {
@@ -387,6 +396,7 @@ class AIService {
   /**
    * Generate fallback analysis when AI service is unavailable
    * @param {Object} sessionData - Session data
+   * @returns {Object} Fallback analysis
    */
   static generateFallbackAnalysis(sessionData) {
     return {
@@ -454,6 +464,129 @@ class AIService {
       if (index > -1) {
         callbacks.splice(index, 1);
       }
+    }
+  }
+
+  /**
+   * Notify all subscribers of an event
+   * @param {string} eventType - Type of event to notify about
+   * @param {object} data - Event data
+   */
+  static notifySubscribers(eventType, data) {
+    if (eventListeners.has(eventType)) {
+      const callbacks = eventListeners.get(eventType);
+      callbacks.forEach(callback => {
+        try {
+          callback(data);
+        } catch (error) {
+          console.error(`Error in ${eventType} event callback:`, error);
+        }
+      });
+    }
+  }
+  
+  /**
+   * Get insight history from a session
+   * @param {string} sessionId - Session ID to get insights for
+   * @param {string} insightType - Type of insights to retrieve
+   * @returns {Promise<Object>} Insight history
+   */
+  static async getSessionInsightHistory(sessionId, insightType = 'all') {
+    try {
+      const endpoint = `/realtime-ai/insights-history/${sessionId}?type=${insightType}`;
+      const response = await api.get(endpoint);
+      return {
+        success: true,
+        insights: response.data.insights ?? [],
+        timestamp: new Date().toISOString()
+      };
+    } catch (error) {
+      console.error('Failed to get insight history:', error);
+      return {
+        success: false,
+        error: error.message,
+        insights: []
+      };
+    }
+  }
+
+  /**
+   * Connect to AI WebSocket service with session parameters
+   * @param {Object} params - Connection parameters
+   * @param {string} params.session_id - Session ID
+   * @param {string|number} params.child_id - Child ID
+   * @returns {Promise<Object>} Connection status
+   */
+  static async connectWebSocket(params) {
+    try {
+      // Store current session info
+      const sessionId = params.session_id;
+      
+      // Setup listeners for insights and errors
+      const onInsight = (insight) => {
+        // Broadcast insights to relevant subscribers based on type
+        if (insight.type === 'emotion') {
+          this.notifySubscribers('emotion_insight', insight.data);
+        } else if (insight.type === 'behavior') {
+          this.notifySubscribers('behavior_insight', insight.data);
+        } else if (insight.type === 'recommendation') {
+          this.notifySubscribers('recommendation', insight.data);
+        } else if (insight.type === 'progress') {
+          this.notifySubscribers('progress_update', insight.data);
+        }
+        
+        // Also notify generic insight subscribers
+        this.notifySubscribers('any_insight', insight);
+      };
+      
+      const onError = (error) => {
+        this.notifySubscribers('connection_error', {
+          message: error.message || 'WebSocket connection error',
+          timestamp: new Date().toISOString()
+        });
+      };
+      
+      // Initialize real-time connection
+      this.initializeRealTimeConnection(sessionId, onInsight, onError);
+      
+      // Start monitoring for this session
+      await this.startMonitoring(sessionId);
+      
+      return {
+        success: true,
+        connected: true,
+        sessionId: sessionId,
+        timestamp: new Date().toISOString()
+      };
+    } catch (error) {
+      console.error('Failed to connect WebSocket:', error);
+      return {
+        success: false,
+        connected: false,
+        error: error.message
+      };
+    }
+  }
+  
+  /**
+   * Disconnect from AI WebSocket service
+   * @returns {Promise<Object>} Disconnection status
+   */
+  static async disconnectWebSocket() {
+    try {
+      this.closeRealTimeConnection();
+      
+      return {
+        success: true,
+        connected: false,
+        timestamp: new Date().toISOString()
+      };
+    } catch (error) {
+      console.error('Failed to disconnect WebSocket:', error);
+      return {
+        success: false,
+        error: error.message
+      };
     }
   }
 }

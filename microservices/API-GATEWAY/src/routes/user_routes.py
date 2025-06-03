@@ -152,3 +152,297 @@ async def search_professionals(
         raise HTTPException(status_code=exc.response.status_code, detail=error_detail)
     except httpx.RequestError:
         raise HTTPException(status_code=503, detail=SERVICE_UNAVAILABLE_MSG)
+
+# Children endpoints forwarding
+@router.post("/children", tags=["Children"])
+async def create_child(
+    child_data: Dict[str, Any],
+    current_user: Dict[str, Any] = Depends(get_current_active_user)
+):
+    """Create a new child for the current user."""
+    try:
+        async with httpx.AsyncClient() as client:
+            children_url = f"{USERS_SERVICE_URL}/users/children"
+            response = await client.post(children_url, json=child_data, timeout=10.0)
+            response.raise_for_status()
+            return response.json()
+    except httpx.HTTPStatusError as exc:
+        error_detail = "Child creation failed"
+        try:
+            error_detail = exc.response.json().get("detail", error_detail)
+        except Exception:
+            pass
+        raise HTTPException(status_code=exc.response.status_code, detail=error_detail)
+    except httpx.RequestError:
+        raise HTTPException(status_code=503, detail=SERVICE_UNAVAILABLE_MSG)
+
+@router.get("/children/my", tags=["Children"])
+async def get_my_children(
+    current_user: Dict[str, Any] = Depends(get_current_active_user)
+):
+    """Get children for the current user."""
+    try:
+        async with httpx.AsyncClient() as client:
+            children_url = f"{USERS_SERVICE_URL}/users/children/my"
+            response = await client.get(children_url, timeout=10.0)
+            response.raise_for_status()
+            return response.json()
+    except httpx.HTTPStatusError as exc:
+        error_detail = "Failed to retrieve children"
+        try:
+            error_detail = exc.response.json().get("detail", error_detail)
+        except Exception:
+            pass
+        raise HTTPException(status_code=exc.response.status_code, detail=error_detail)
+    except httpx.RequestError:
+        raise HTTPException(status_code=503, detail=SERVICE_UNAVAILABLE_MSG)
+
+@router.get("/children/{child_id}", tags=["Children"])
+async def get_child(
+    child_id: int,
+    current_user: Dict[str, Any] = Depends(get_current_active_user)
+):
+    """Get a specific child by ID."""
+    try:
+        async with httpx.AsyncClient() as client:
+            child_url = f"{USERS_SERVICE_URL}/users/children/{child_id}"
+            response = await client.get(child_url, timeout=10.0)
+            response.raise_for_status()
+            return response.json()
+    except httpx.HTTPStatusError as exc:
+        error_detail = "Child not found"
+        try:
+            error_detail = exc.response.json().get("detail", error_detail)
+        except Exception:
+            pass
+        raise HTTPException(status_code=exc.response.status_code, detail=error_detail)
+    except httpx.RequestError:
+        raise HTTPException(status_code=503, detail=SERVICE_UNAVAILABLE_MSG)
+
+@router.put("/children/{child_id}", tags=["Children"])
+async def update_child(
+    child_id: int,
+    child_data: Dict[str, Any],
+    current_user: Dict[str, Any] = Depends(get_current_active_user)
+):
+    """Update a child's information."""
+    try:
+        async with httpx.AsyncClient() as client:
+            child_url = f"{USERS_SERVICE_URL}/users/children/{child_id}"
+            response = await client.put(child_url, json=child_data, timeout=10.0)
+            response.raise_for_status()
+            return response.json()
+    except httpx.HTTPStatusError as exc:
+        error_detail = "Child update failed"
+        try:
+            error_detail = exc.response.json().get("detail", error_detail)
+        except Exception:
+            pass
+        raise HTTPException(status_code=exc.response.status_code, detail=error_detail)
+    except httpx.RequestError:
+        raise HTTPException(status_code=503, detail=SERVICE_UNAVAILABLE_MSG)
+
+@router.delete("/children/{child_id}", tags=["Children"])
+async def delete_child(
+    child_id: int,
+    current_user: Dict[str, Any] = Depends(get_current_active_user)
+):
+    """Delete a child."""
+    try:
+        async with httpx.AsyncClient() as client:
+            child_url = f"{USERS_SERVICE_URL}/users/children/{child_id}"
+            response = await client.delete(child_url, timeout=10.0)
+            response.raise_for_status()
+            return response.json()
+    except httpx.HTTPStatusError as exc:
+        error_detail = "Child deletion failed"
+        try:
+            error_detail = exc.response.json().get("detail", error_detail)
+        except Exception:
+            pass
+        raise HTTPException(status_code=exc.response.status_code, detail=error_detail)
+    except httpx.RequestError:
+        raise HTTPException(status_code=503, detail=SERVICE_UNAVAILABLE_MSG)
+
+@router.get("/children/{child_id}/clinical", tags=["Children"])
+async def get_child_clinical_view(
+    child_id: int,
+    current_user: Dict[str, Any] = Depends(get_current_active_user)
+):
+    """Get clinical view of a child (for professionals)."""
+    try:
+        async with httpx.AsyncClient() as client:
+            clinical_url = f"{USERS_SERVICE_URL}/users/children/{child_id}/clinical"
+            response = await client.get(clinical_url, timeout=10.0)
+            response.raise_for_status()
+            return response.json()
+    except httpx.HTTPStatusError as exc:
+        error_detail = "Clinical view access failed"
+        try:
+            error_detail = exc.response.json().get("detail", error_detail)
+        except Exception:
+            pass
+        raise HTTPException(status_code=exc.response.status_code, detail=error_detail)
+    except httpx.RequestError:
+        raise HTTPException(status_code=503, detail=SERVICE_UNAVAILABLE_MSG)
+
+@router.get("/children", tags=["Children"])
+async def get_all_children(
+    current_user: Dict[str, Any] = Depends(get_current_user)
+):
+    """Get all children (admin/professional access)."""
+    try:
+        async with httpx.AsyncClient() as client:
+            children_url = f"{USERS_SERVICE_URL}/users/children"
+            response = await client.get(children_url, timeout=10.0)
+            response.raise_for_status()
+            return response.json()
+    except httpx.HTTPStatusError as exc:
+        error_detail = "Failed to retrieve all children"
+        try:
+            error_detail = exc.response.json().get("detail", error_detail)
+        except Exception:
+            pass
+        raise HTTPException(status_code=exc.response.status_code, detail=error_detail)
+    except httpx.RequestError:
+        raise HTTPException(status_code=503, detail=SERVICE_UNAVAILABLE_MSG)
+
+# Sensory Profile endpoints forwarding
+@router.post("/sensory-profiles", tags=["Sensory Profiles"])
+async def create_sensory_profile(
+    sensory_profile_data: Dict[str, Any],
+    current_user: Dict[str, Any] = Depends(get_current_active_user)
+):
+    """Create a new sensory profile for a child."""
+    try:
+        async with httpx.AsyncClient() as client:
+            sensory_profiles_url = f"{USERS_SERVICE_URL}/users/sensory-profiles"
+            response = await client.post(sensory_profiles_url, json=sensory_profile_data, timeout=10.0)
+            response.raise_for_status()
+            return response.json()
+    except httpx.HTTPStatusError as exc:
+        error_detail = "Sensory profile creation failed"
+        try:
+            error_detail = exc.response.json().get("detail", error_detail)
+        except Exception:
+            pass
+        raise HTTPException(status_code=exc.response.status_code, detail=error_detail)
+    except httpx.RequestError:
+        raise HTTPException(status_code=503, detail=SERVICE_UNAVAILABLE_MSG)
+
+@router.get("/sensory-profiles", tags=["Sensory Profiles"])
+async def get_sensory_profiles(
+    skip: int = 0,
+    limit: int = 100,
+    child_id: Optional[int] = None,
+    current_user: Dict[str, Any] = Depends(get_current_active_user)
+):
+    """Get sensory profiles."""
+    try:
+        params = {"skip": skip, "limit": limit}
+        if child_id:
+            params["child_id"] = child_id
+            
+        async with httpx.AsyncClient() as client:
+            sensory_profiles_url = f"{USERS_SERVICE_URL}/users/sensory-profiles"
+            response = await client.get(sensory_profiles_url, params=params, timeout=10.0)
+            response.raise_for_status()
+            return response.json()
+    except httpx.HTTPStatusError as exc:
+        error_detail = "Failed to retrieve sensory profiles"
+        try:
+            error_detail = exc.response.json().get("detail", error_detail)
+        except Exception:
+            pass
+        raise HTTPException(status_code=exc.response.status_code, detail=error_detail)
+    except httpx.RequestError:
+        raise HTTPException(status_code=503, detail=SERVICE_UNAVAILABLE_MSG)
+
+@router.get("/sensory-profiles/{profile_id}", tags=["Sensory Profiles"])
+async def get_sensory_profile(
+    profile_id: int,
+    current_user: Dict[str, Any] = Depends(get_current_active_user)
+):
+    """Get a specific sensory profile."""
+    try:
+        async with httpx.AsyncClient() as client:
+            sensory_profile_url = f"{USERS_SERVICE_URL}/users/sensory-profiles/{profile_id}"
+            response = await client.get(sensory_profile_url, timeout=10.0)
+            response.raise_for_status()
+            return response.json()
+    except httpx.HTTPStatusError as exc:
+        error_detail = "Sensory profile not found"
+        try:
+            error_detail = exc.response.json().get("detail", error_detail)
+        except Exception:
+            pass
+        raise HTTPException(status_code=exc.response.status_code, detail=error_detail)
+    except httpx.RequestError:
+        raise HTTPException(status_code=503, detail=SERVICE_UNAVAILABLE_MSG)
+
+@router.put("/sensory-profiles/{profile_id}", tags=["Sensory Profiles"])
+async def update_sensory_profile(
+    profile_id: int,
+    sensory_profile_data: Dict[str, Any],
+    current_user: Dict[str, Any] = Depends(get_current_active_user)
+):
+    """Update a sensory profile."""
+    try:
+        async with httpx.AsyncClient() as client:
+            sensory_profile_url = f"{USERS_SERVICE_URL}/users/sensory-profiles/{profile_id}"
+            response = await client.put(sensory_profile_url, json=sensory_profile_data, timeout=10.0)
+            response.raise_for_status()
+            return response.json()
+    except httpx.HTTPStatusError as exc:
+        error_detail = "Sensory profile update failed"
+        try:
+            error_detail = exc.response.json().get("detail", error_detail)
+        except Exception:
+            pass
+        raise HTTPException(status_code=exc.response.status_code, detail=error_detail)
+    except httpx.RequestError:
+        raise HTTPException(status_code=503, detail=SERVICE_UNAVAILABLE_MSG)
+
+@router.delete("/sensory-profiles/{profile_id}", tags=["Sensory Profiles"])
+async def delete_sensory_profile(
+    profile_id: int,
+    current_user: Dict[str, Any] = Depends(get_current_active_user)
+):
+    """Delete a sensory profile."""
+    try:
+        async with httpx.AsyncClient() as client:
+            sensory_profile_url = f"{USERS_SERVICE_URL}/users/sensory-profiles/{profile_id}"
+            response = await client.delete(sensory_profile_url, timeout=10.0)
+            response.raise_for_status()
+            return response.json()
+    except httpx.HTTPStatusError as exc:
+        error_detail = "Sensory profile deletion failed"
+        try:
+            error_detail = exc.response.json().get("detail", error_detail)
+        except Exception:
+            pass
+        raise HTTPException(status_code=exc.response.status_code, detail=error_detail)
+    except httpx.RequestError:
+        raise HTTPException(status_code=503, detail=SERVICE_UNAVAILABLE_MSG)
+
+@router.get("/children/{child_id}/sensory-profile", tags=["Sensory Profiles"])
+async def get_child_sensory_profile(
+    child_id: int,
+    current_user: Dict[str, Any] = Depends(get_current_active_user)
+):
+    """Get sensory profile for a specific child."""
+    try:
+        async with httpx.AsyncClient() as client:
+            sensory_profile_url = f"{USERS_SERVICE_URL}/users/children/{child_id}/sensory-profile"
+            response = await client.get(sensory_profile_url, timeout=10.0)
+            response.raise_for_status()
+            return response.json()
+    except httpx.HTTPStatusError as exc:
+        error_detail = "Sensory profile not found for this child"
+        try:
+            error_detail = exc.response.json().get("detail", error_detail)
+        except Exception:
+            pass
+        raise HTTPException(status_code=exc.response.status_code, detail=error_detail)
+    except httpx.RequestError:
+        raise HTTPException(status_code=503, detail=SERVICE_UNAVAILABLE_MSG)

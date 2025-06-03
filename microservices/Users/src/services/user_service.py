@@ -10,7 +10,9 @@ from passlib.context import CryptContext
 from sqlalchemy import func as sqlalchemy_func  # Renamed to avoid conflict
 from sqlalchemy.orm import Session, joinedload
 # Assuming schemas are in user_model.py as per previous steps
-from src.models.user_model import (ProfessionalCreate, ProfessionalUpdate,
+from src.models.user_model import (Child, ChildCreate, ChildUpdate, 
+                                   ProfessionalCreate, ProfessionalUpdate,
+                                   SensoryProfile, SensoryProfileCreate, SensoryProfileUpdate,
                                    Specialty, SpecialtyCreate, SpecialtyUpdate,
                                    User, UserCreate, UserType, UserUpdate,
                                    user_specialty_association)
@@ -229,3 +231,103 @@ def delete_specialty(db: Session, specialty_id: int) -> Optional[Specialty]:
     db.delete(db_specialty)
     db.commit()
     return db_specialty
+
+# Child CRUD operations
+def create_child(db: Session, child_data: ChildCreate) -> Child:
+    """Create a new child profile."""
+    db_child = Child(
+        name=child_data.name,
+        surname=child_data.surname,
+        birth_date=child_data.birth_date,
+        diagnosis=child_data.diagnosis,
+        parent_id=child_data.parent_id,
+        sensory_preferences=child_data.sensory_preferences,
+        communication_preferences=child_data.communication_preferences,
+        behavioral_notes=child_data.behavioral_notes,
+        support_level=child_data.support_level
+    )
+    db.add(db_child)
+    db.commit()
+    db.refresh(db_child)
+    return db_child
+
+def get_child(db: Session, child_id: int) -> Optional[Child]:
+    """Get a child by ID."""
+    return db.query(Child).filter(Child.id == child_id).first()
+
+def get_children_by_parent(db: Session, parent_id: int, skip: int = 0, limit: int = 100) -> List[Child]:
+    """Get all children for a specific parent."""
+    return db.query(Child).filter(Child.parent_id == parent_id).offset(skip).limit(limit).all()
+
+def get_children(db: Session, skip: int = 0, limit: int = 100) -> List[Child]:
+    """Get all children (admin function)."""
+    return db.query(Child).offset(skip).limit(limit).all()
+
+def update_child(db: Session, child_id: int, child_data: ChildUpdate) -> Optional[Child]:
+    """Update a child profile."""
+    db_child = get_child(db, child_id)
+    if not db_child:
+        return None
+    
+    update_data = child_data.model_dump(exclude_unset=True)
+    for key, value in update_data.items():
+        setattr(db_child, key, value)
+        
+    db.add(db_child)
+    db.commit()
+    db.refresh(db_child)
+    return db_child
+
+def delete_child(db: Session, child_id: int) -> Optional[Child]:
+    """Delete a child profile."""
+    db_child = get_child(db, child_id)
+    if not db_child:
+        return None
+    db.delete(db_child)
+    db.commit()
+    return db_child
+
+# Sensory Profile CRUD operations
+def create_sensory_profile(db: Session, sensory_profile_data: SensoryProfileCreate) -> SensoryProfile:
+    """Create a new sensory profile."""
+    db_sensory_profile = SensoryProfile(**sensory_profile_data.model_dump())
+    db.add(db_sensory_profile)
+    db.commit()
+    db.refresh(db_sensory_profile)
+    return db_sensory_profile
+
+def get_sensory_profile(db: Session, sensory_profile_id: int) -> Optional[SensoryProfile]:
+    """Get a sensory profile by ID."""
+    return db.query(SensoryProfile).filter(SensoryProfile.id == sensory_profile_id).first()
+
+def get_sensory_profile_by_child(db: Session, child_id: int) -> Optional[SensoryProfile]:
+    """Get a sensory profile by child ID."""
+    return db.query(SensoryProfile).filter(SensoryProfile.child_id == child_id).first()
+
+def get_sensory_profiles(db: Session, skip: int = 0, limit: int = 100) -> List[SensoryProfile]:
+    """Get list of all sensory profiles."""
+    return db.query(SensoryProfile).offset(skip).limit(limit).all()
+
+def update_sensory_profile(db: Session, sensory_profile_id: int, sensory_profile_data: SensoryProfileUpdate) -> Optional[SensoryProfile]:
+    """Update a sensory profile."""
+    db_sensory_profile = get_sensory_profile(db, sensory_profile_id)
+    if not db_sensory_profile:
+        return None
+        
+    update_data = sensory_profile_data.model_dump(exclude_unset=True)
+    for key, value in update_data.items():
+        setattr(db_sensory_profile, key, value)
+        
+    db.add(db_sensory_profile)
+    db.commit()
+    db.refresh(db_sensory_profile)
+    return db_sensory_profile
+
+def delete_sensory_profile(db: Session, sensory_profile_id: int) -> Optional[SensoryProfile]:
+    """Delete a sensory profile."""
+    db_sensory_profile = get_sensory_profile(db, sensory_profile_id)
+    if not db_sensory_profile:
+        return None
+    db.delete(db_sensory_profile)
+    db.commit()
+    return db_sensory_profile

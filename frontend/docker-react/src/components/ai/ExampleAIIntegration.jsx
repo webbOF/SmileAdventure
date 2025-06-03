@@ -4,184 +4,184 @@
  */
 
 import React, { useState, useEffect } from 'react';
-import { AIInsightsPanel } from './components/ai';
-import AIService from './services/aiService';
+import { AIInsightsPanel } from '../ai';
+import AIService from '../../services/aiService.js';
 
 const ExampleAIIntegration = () => {
-    const [sessionId] = useState('session-12345');
-    const [childId] = useState('child-67890');
-    const [isSessionActive, setIsSessionActive] = useState(false);
-    const [sessionData, setSessionData] = useState({
-        child_id: 'child-67890',
-        session_id: 'session-12345',
-        timestamp: new Date().toISOString(),
-        therapist_id: 'therapist-123',
-        child_profile: {
-            name: 'Emma',
-            age: 8,
-            diagnosis: 'Autism Spectrum Disorder',
-            communication_level: 'verbal',
-            sensory_preferences: ['visual', 'tactile'],
-            behavioral_patterns: ['routine-focused', 'social-seeking'],
-            current_goals: [
-                'Improve social communication',
-                'Develop emotional regulation',
-                'Increase attention span'
-            ]
-        }
+  const [sessionId] = useState('session-12345');
+  const [childId] = useState('child-67890');
+  const [isSessionActive, setIsSessionActive] = useState(false);
+  const [sessionData, setSessionData] = useState({
+    child_id: 'child-67890',
+    session_id: 'session-12345',
+    timestamp: new Date().toISOString(),
+    therapist_id: 'therapist-123',
+    child_profile: {
+      name: 'Emma',
+      age: 8,
+      diagnosis: 'Autism Spectrum Disorder',
+      communication_level: 'verbal',
+      sensory_preferences: ['visual', 'tactile'],
+      behavioral_patterns: ['routine-focused', 'social-seeking'],
+      current_goals: [
+        'Improve social communication',
+        'Develop emotional regulation',
+        'Increase attention span'
+      ]
+    }
+  });
+
+  // Start AI analysis session
+  const startAISession = async () => {
+    try {
+      setIsSessionActive(true);
+
+      // Initialize AI service connection
+      await AIService.connectWebSocket({
+        session_id: sessionId,
+        child_id: childId
+      });
+
+      console.log('AI session started successfully');
+    } catch (error) {
+      console.error('Failed to start AI session:', error);
+      setIsSessionActive(false);
+    }
+  };
+
+  // Stop AI analysis session
+  const stopAISession = async () => {
+    try {
+      await AIService.disconnectWebSocket();
+      setIsSessionActive(false);
+      console.log('AI session stopped');
+    } catch (error) {
+      console.error('Error stopping AI session:', error);
+    }
+  };
+
+  // Handle recommendation selection
+  const handleRecommendationSelect = (recommendation) => {
+    console.log('Recommendation selected:', recommendation);
+
+    // You can implement custom logic here:
+    // - Log the recommendation usage
+    // - Update session notes
+    // - Trigger specific actions
+    // - Send feedback to AI service
+
+    // Example: Send feedback to AI service
+    AIService.sendWebSocketMessage({
+      type: 'recommendation_feedback',
+      recommendation_id: recommendation.id,
+      action: 'applied',
+      session_id: sessionId,
+      timestamp: new Date().toISOString()
     });
+  };
 
-    // Start AI analysis session
-    const startAISession = async () => {
-        try {
-            setIsSessionActive(true);
-
-            // Initialize AI service connection
-            await AIService.connectWebSocket({
-                session_id: sessionId,
-                child_id: childId
-            });
-
-            console.log('AI session started successfully');
-        } catch (error) {
-            console.error('Failed to start AI session:', error);
-            setIsSessionActive(false);
-        }
+  // Cleanup on component unmount
+  useEffect(() => {
+    return () => {
+      if (isSessionActive) {
+        stopAISession();
+      }
     };
+  }, [isSessionActive]);
 
-    // Stop AI analysis session
-    const stopAISession = async () => {
-        try {
-            await AIService.disconnectWebSocket();
-            setIsSessionActive(false);
-            console.log('AI session stopped');
-        } catch (error) {
-            console.error('Error stopping AI session:', error);
-        }
-    };
+  return (
+    <div className="ai-integration-example">
+      <div className="example-header">
+        <h1>🤖 AI-Enhanced Therapy Session</h1>
+        <div className="session-controls">
+          <button
+            onClick={startAISession}
+            disabled={isSessionActive}
+            className="start-btn"
+          >
+            {isSessionActive ? '✅ AI Active' : '🚀 Start AI Analysis'}
+          </button>
 
-    // Handle recommendation selection
-    const handleRecommendationSelect = (recommendation) => {
-        console.log('Recommendation selected:', recommendation);
+          {isSessionActive && (
+            <button
+              onClick={stopAISession}
+              className="stop-btn"
+            >
+              ⏹️ Stop AI Analysis
+            </button>
+          )}
+        </div>
+      </div>
 
-        // You can implement custom logic here:
-        // - Log the recommendation usage
-        // - Update session notes
-        // - Trigger specific actions
-        // - Send feedback to AI service
+      <div className="session-info">
+        <div className="info-card">
+          <h3>👤 Child Profile</h3>
+          <p><strong>Name:</strong> {sessionData.child_profile.name}</p>
+          <p><strong>Age:</strong> {sessionData.child_profile.age}</p>
+          <p><strong>Diagnosis:</strong> {sessionData.child_profile.diagnosis}</p>
+          <p><strong>Goals:</strong> {sessionData.child_profile.current_goals.join(', ')}</p>
+        </div>
 
-        // Example: Send feedback to AI service
-        AIService.sendWebSocketMessage({
-            type: 'recommendation_feedback',
-            recommendation_id: recommendation.id,
-            action: 'applied',
-            session_id: sessionId,
-            timestamp: new Date().toISOString()
-        });
-    };
+        <div className="info-card">
+          <h3>🔍 Session Details</h3>
+          <p><strong>Session ID:</strong> {sessionId}</p>
+          <p><strong>Status:</strong> {isSessionActive ? '🟢 Active' : '🔴 Inactive'}</p>
+          <p><strong>AI Analysis:</strong> {isSessionActive ? 'Running' : 'Stopped'}</p>
+        </div>
+      </div>
 
-    // Cleanup on component unmount
-    useEffect(() => {
-        return () => {
-            if (isSessionActive) {
-                stopAISession();
-            }
-        };
-    }, [isSessionActive]);
+      {/* Main AI Insights Panel */}
+      <AIInsightsPanel
+        sessionId={sessionId}
+        childId={childId}
+        sessionData={sessionData}
+        isActive={isSessionActive}
+        onRecommendationSelect={handleRecommendationSelect}
+      />
 
-    return (
-        <div className="ai-integration-example">
-            <div className="example-header">
-                <h1>🤖 AI-Enhanced Therapy Session</h1>
-                <div className="session-controls">
-                    <button
-                        onClick={startAISession}
-                        disabled={isSessionActive}
-                        className="start-btn"
-                    >
-                        {isSessionActive ? '✅ AI Active' : '🚀 Start AI Analysis'}
-                    </button>
+      {/* Usage Instructions */}
+      <div className="usage-instructions">
+        <h3>📋 How to Use AI Components</h3>
+        <div className="instructions-grid">
+          <div className="instruction-card">
+            <h4>🔄 Real-time Insights</h4>
+            <ul>
+              <li>View live AI analysis of the session</li>
+              <li>Monitor emotional and behavioral patterns</li>
+              <li>Get instant feedback on therapy progress</li>
+            </ul>
+          </div>
 
-                    {isSessionActive && (
-                        <button
-                            onClick={stopAISession}
-                            className="stop-btn"
-                        >
-                            ⏹️ Stop AI Analysis
-                        </button>
-                    )}
-                </div>
-            </div>
+          <div className="instruction-card">
+            <h4>🎯 Clinical Recommendations</h4>
+            <ul>
+              <li>Access AI-generated clinical suggestions</li>
+              <li>View categorized recommendations by priority</li>
+              <li>Implement evidence-based interventions</li>
+            </ul>
+          </div>
 
-            <div className="session-info">
-                <div className="info-card">
-                    <h3>👤 Child Profile</h3>
-                    <p><strong>Name:</strong> {sessionData.child_profile.name}</p>
-                    <p><strong>Age:</strong> {sessionData.child_profile.age}</p>
-                    <p><strong>Diagnosis:</strong> {sessionData.child_profile.diagnosis}</p>
-                    <p><strong>Goals:</strong> {sessionData.child_profile.current_goals.join(', ')}</p>
-                </div>
+          <div className="instruction-card">
+            <h4>📈 Progress Predictions</h4>
+            <ul>
+              <li>Visualize therapy progress trends</li>
+              <li>Predict future milestones</li>
+              <li>Track skill development over time</li>
+            </ul>
+          </div>
 
-                <div className="info-card">
-                    <h3>🔍 Session Details</h3>
-                    <p><strong>Session ID:</strong> {sessionId}</p>
-                    <p><strong>Status:</strong> {isSessionActive ? '🟢 Active' : '🔴 Inactive'}</p>
-                    <p><strong>AI Analysis:</strong> {isSessionActive ? 'Running' : 'Stopped'}</p>
-                </div>
-            </div>
+          <div className="instruction-card">
+            <h4>💡 Intervention Suggestions</h4>
+            <ul>
+              <li>Get real-time intervention ideas</li>
+              <li>Apply categorized interventions</li>
+              <li>Track intervention effectiveness</li>
+            </ul>
+          </div>
+        </div>
+      </div>
 
-            {/* Main AI Insights Panel */}
-            <AIInsightsPanel
-                sessionId={sessionId}
-                childId={childId}
-                sessionData={sessionData}
-                isActive={isSessionActive}
-                onRecommendationSelect={handleRecommendationSelect}
-            />
-
-            {/* Usage Instructions */}
-            <div className="usage-instructions">
-                <h3>📋 How to Use AI Components</h3>
-                <div className="instructions-grid">
-                    <div className="instruction-card">
-                        <h4>🔄 Real-time Insights</h4>
-                        <ul>
-                            <li>View live AI analysis of the session</li>
-                            <li>Monitor emotional and behavioral patterns</li>
-                            <li>Get instant feedback on therapy progress</li>
-                        </ul>
-                    </div>
-
-                    <div className="instruction-card">
-                        <h4>🎯 Clinical Recommendations</h4>
-                        <ul>
-                            <li>Access AI-generated clinical suggestions</li>
-                            <li>View categorized recommendations by priority</li>
-                            <li>Implement evidence-based interventions</li>
-                        </ul>
-                    </div>
-
-                    <div className="instruction-card">
-                        <h4>📈 Progress Predictions</h4>
-                        <ul>
-                            <li>Visualize therapy progress trends</li>
-                            <li>Predict future milestones</li>
-                            <li>Track skill development over time</li>
-                        </ul>
-                    </div>
-
-                    <div className="instruction-card">
-                        <h4>💡 Intervention Suggestions</h4>
-                        <ul>
-                            <li>Get real-time intervention ideas</li>
-                            <li>Apply categorized interventions</li>
-                            <li>Track intervention effectiveness</li>
-                        </ul>
-                    </div>
-                </div>
-            </div>
-
-            <style jsx>{`
+      <style jsx>{`
         .ai-integration-example {
           max-width: 1400px;
           margin: 0 auto;
@@ -325,8 +325,8 @@ const ExampleAIIntegration = () => {
           }
         }
       `}</style>
-        </div>
-    );
+    </div>
+  );
 };
 
 export default ExampleAIIntegration;

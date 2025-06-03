@@ -1,10 +1,10 @@
 from datetime import datetime
 from enum import Enum
-from typing import List, Optional
+from typing import List, Optional, Dict, Any
 
 from pydantic import BaseModel, EmailStr, Field
 from sqlalchemy import (Boolean, Column, DateTime, Float, ForeignKey, Integer,
-                        String, Table, Text)
+                        String, Table, Text, JSON)
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship
 
@@ -66,6 +66,31 @@ class Specialty(Base):
     # Relazioni
     professionals = relationship("User", secondary=user_specialty_association, back_populates="specialties")
 
+# Child model for storing child profiles
+class Child(Base):
+    __tablename__ = "children"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    name = Column(String, nullable=False)
+    surname = Column(String, nullable=False)
+    birth_date = Column(String, nullable=False)  # Format: YYYY-MM-DD
+    diagnosis = Column(String, nullable=True)  # ASD diagnosis information
+    parent_id = Column(Integer, ForeignKey('users.id'), nullable=False)
+    
+    # ASD-specific fields
+    sensory_preferences = Column(JSON, nullable=True)  # JSON field for sensory preferences
+    communication_preferences = Column(JSON, nullable=True)  # Communication style preferences
+    behavioral_notes = Column(Text, nullable=True)  # Notes about behavioral patterns
+    support_level = Column(Integer, nullable=True)  # ASD support level (1-3)
+      # Metadata
+    is_active = Column(Boolean, default=True)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    
+    # Relationships
+    parent = relationship("User", backref="children")
+    sensory_profile = relationship("SensoryProfile", back_populates="child", uselist=False)
+
 # Schemi Pydantic
 class SpecialtyBase(BaseModel):
     name: str
@@ -79,6 +104,40 @@ class SpecialtyUpdate(SpecialtyBase):
 
 class SpecialtyInDB(SpecialtyBase):
     id: int
+    
+    class Config:
+        from_attributes = True
+
+# Child Pydantic schemas
+class ChildBase(BaseModel):
+    name: str
+    surname: str
+    birth_date: str  # Format: YYYY-MM-DD
+    diagnosis: Optional[str] = None
+    parent_id: int
+    sensory_preferences: Optional[Dict[str, Any]] = None
+    communication_preferences: Optional[Dict[str, Any]] = None
+    behavioral_notes: Optional[str] = None
+    support_level: Optional[int] = Field(None, ge=1, le=3)
+
+class ChildCreate(ChildBase):
+    pass
+
+class ChildUpdate(BaseModel):
+    name: Optional[str] = None
+    surname: Optional[str] = None
+    birth_date: Optional[str] = None
+    diagnosis: Optional[str] = None
+    sensory_preferences: Optional[Dict[str, Any]] = None
+    communication_preferences: Optional[Dict[str, Any]] = None
+    behavioral_notes: Optional[str] = None
+    support_level: Optional[int] = Field(None, ge=1, le=3)
+
+class ChildInDB(ChildBase):
+    id: int
+    is_active: bool
+    created_at: datetime
+    updated_at: datetime
     
     class Config:
         from_attributes = True
@@ -139,6 +198,53 @@ class ProfessionalInDB(UserInDB):
     rating: Optional[float] = None
     review_count: Optional[int] = None
     specialties: List[SpecialtyInDB] = []
+    
+    class Config:
+        from_attributes = True
+
+# Sensory Profile Model (SQLAlchemy)
+class SensoryProfile(Base):
+    __tablename__ = "sensory_profiles"
+
+    id = Column(Integer, primary_key=True, index=True)
+    child_id = Column(Integer, ForeignKey('children.id'), nullable=False)
+    visual_sensitivity = Column(Integer, nullable=True)  # 1-5 scale
+    auditory_sensitivity = Column(Integer, nullable=True)  # 1-5 scale
+    tactile_sensitivity = Column(Integer, nullable=True)  # 1-5 scale
+    proprioceptive_needs = Column(Integer, nullable=True)  # 1-5 scale
+    vestibular_preferences = Column(Integer, nullable=True)  # 1-5 scale
+    adaptation_strategies = Column(JSON, nullable=True)  # Array of strategies
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    
+    # Relationship to child
+    child = relationship("Child", back_populates="sensory_profile")
+
+# Sensory Profile Pydantic Schemas
+class SensoryProfileBase(BaseModel):
+    child_id: int
+    visual_sensitivity: Optional[int] = Field(None, ge=1, le=5)
+    auditory_sensitivity: Optional[int] = Field(None, ge=1, le=5)
+    tactile_sensitivity: Optional[int] = Field(None, ge=1, le=5)
+    proprioceptive_needs: Optional[int] = Field(None, ge=1, le=5)
+    vestibular_preferences: Optional[int] = Field(None, ge=1, le=5)
+    adaptation_strategies: Optional[List[str]] = None
+
+class SensoryProfileCreate(SensoryProfileBase):
+    pass
+
+class SensoryProfileUpdate(BaseModel):
+    visual_sensitivity: Optional[int] = Field(None, ge=1, le=5)
+    auditory_sensitivity: Optional[int] = Field(None, ge=1, le=5)
+    tactile_sensitivity: Optional[int] = Field(None, ge=1, le=5)
+    proprioceptive_needs: Optional[int] = Field(None, ge=1, le=5)
+    vestibular_preferences: Optional[int] = Field(None, ge=1, le=5)
+    adaptation_strategies: Optional[List[str]] = None
+
+class SensoryProfileInDB(SensoryProfileBase):
+    id: int
+    created_at: datetime
+    updated_at: datetime
     
     class Config:
         from_attributes = True

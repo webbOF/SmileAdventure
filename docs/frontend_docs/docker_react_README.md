@@ -66,3 +66,38 @@ This section has moved here: https://facebook.github.io/create-react-app/docs/de
 ### `npm run build` fails to minify
 
 This section has moved here: https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify
+
+## AI Integration
+
+This project includes AI integration components that provide real-time insights, clinical recommendations, progress predictions, and intervention suggestions. These components leverage WebSocket connections to provide real-time updates.
+
+### Key Components
+
+- **AIInsightsPanel**: Main component for displaying AI insights
+- **ClinicalRecommendationViewer**: Displays AI-generated clinical recommendations
+- **ProgressPredictionCharts**: Shows progress charts and predictions
+- **InterventionSuggestionInterface**: Offers real-time intervention suggestions
+
+### Documentation
+
+For more information about the AI integration, see the following documentation:
+- [AI Integration JavaScript Conversion](../ai_integration_javascript_conversion.md) - Details of the TypeScript to JavaScript conversion
+- [AIService API Reference](../../frontend/docker-react/src/services/aiService.js) - API documentation for the AI service
+
+### Usage Example
+
+```jsx
+import { AIInsightsPanel } from './components/ai';
+import AIService from './services/aiService.js';
+
+const MyComponent = () => {
+  return (
+    <AIInsightsPanel 
+      sessionId="session-12345"
+      childId="child-67890"
+      isActive={true}
+      onRecommendationSelect={(rec) => console.log('Selected:', rec)}
+    />
+  );
+};
+```

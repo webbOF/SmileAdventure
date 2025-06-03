@@ -13,6 +13,7 @@ REPORTS_SERVICE_URL = os.getenv("REPORTS_SERVICE_URL", "http://reports:8007/api/
 GAME_SERVICE_URL = os.getenv("GAME_SERVICE_URL", "http://game:8005/api/v1")
 
 # Include i router specifici per ciascun servizio
+from .admin_routes import router as admin_router  # Admin health monitoring routes
 from .auth_routes import router as auth_router
 from .game_routes import router as game_router  # Game routes implementation
 from .progress_routes import \
@@ -24,6 +25,7 @@ from .reports_routes import \
 from .user_routes import router as user_router
 
 # Registrazione dei router
+router.include_router(admin_router, prefix="/admin", tags=["Admin"])  # Admin routes for system monitoring
 router.include_router(auth_router, prefix="/auth", tags=["Authentication"])
 router.include_router(user_router, prefix="/users", tags=["Users"])
 router.include_router(reports_router, prefix="/reports", tags=["Reports"]) # Decommentato e incluso

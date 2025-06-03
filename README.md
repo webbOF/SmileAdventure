@@ -102,6 +102,18 @@ npm install
 npm start
 ```
 
+#### AI Integration Components
+
+The React frontend includes AI-powered components that analyze session data and provide real-time insights:
+
+- **Real-time AI Insights**: Monitor emotional and behavioral patterns during therapy sessions
+- **Clinical Recommendations**: AI-generated suggestions based on session data
+- **Progress Prediction Charts**: Visualize therapy progress and predict future milestones
+- **Intervention Suggestions**: Real-time intervention ideas during sessions
+
+For more details about the AI integration, see:
+- [AI Integration JavaScript Conversion](docs/frontend_docs/ai_integration_javascript_conversion.md)
+- [AI Components Documentation](frontend/docker-react/README.md)
 
 ### Unity
 

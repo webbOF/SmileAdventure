@@ -4,7 +4,7 @@ This documentation provides comprehensive information about the AI-enhanced fron
 
 ## 📋 Overview
 
-The AI-enhanced frontend consists of four main JavaScript/JSX components that provide real-time AI insights, clinical recommendations, progress predictions, and intervention suggestions. These components integrate seamlessly with the existing `aiService.ts` to deliver comprehensive AI-powered functionality.
+The AI-enhanced frontend consists of four main JavaScript/JSX components that provide real-time AI insights, clinical recommendations, progress predictions, and intervention suggestions. These components integrate seamlessly with the `aiService.js` to deliver comprehensive AI-powered functionality.
 
 ## 🏗️ Component Architecture
 
@@ -118,7 +118,7 @@ src/components/ai/
 
 ## 🔌 Integration with AIService
 
-All components integrate with the existing `aiService.ts` through:
+All components integrate with the `aiService.js` through:
 
 1. **WebSocket Connection**: Real-time data streaming
 2. **API Calls**: Fetching recommendations and analysis

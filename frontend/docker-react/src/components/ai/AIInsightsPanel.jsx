@@ -28,8 +28,7 @@ const AIInsightsPanel = ({
     sessionData = {},
     isActive = false,
     onRecommendationSelect = () => { }
-}) => {
-    // State management
+}) => {    // State management
     const [realTimeInsights, setRealTimeInsights] = useState([]);
     const [emotionalPatterns, setEmotionalPatterns] = useState(null);
     const [behavioralPatterns, setBehavioralPatterns] = useState(null);
@@ -43,18 +42,37 @@ const AIInsightsPanel = ({
 
     const insightsEndRef = useRef(null);
     const connectionRetryCount = useRef(0);
-    const maxRetries = 3;
-
-    // Initialize real-time connection when component mounts or sessionId changes
+    const maxRetries = 3;// Initialize real-time connection when component mounts or sessionId changes
     useEffect(() => {
-        if (sessionId && isActive) {
-            initializeAIConnection();
-            checkAIServiceHealth();
-        }
+        let isSubscribed = true;
 
+        const setupConnection = async () => {
+            if (sessionId && isActive) {
+                await initializeAIConnection();
+                if (isSubscribed) {
+                    await checkAIServiceHealth();
+                }
+            }
+        };
+
+        setupConnection();
+
+        // Cleanup function when component unmounts or dependencies change
         return () => {
-            AIService.closeRealTimeConnection();
-            setConnectionStatus('disconnected');
+            isSubscribed = false;
+
+            // Unsubscribe from events
+            AIService.unsubscribe('any_insight', handleRealTimeInsight);
+            AIService.unsubscribe('connection_error', handleConnectionError);
+
+            // Disconnect WebSocket
+            AIService.disconnectWebSocket().then(() => {
+                if (isSubscribed) {
+                    setConnectionStatus('disconnected');
+                }
+            }).catch(error => {
+                console.error('Error disconnecting WebSocket:', error);
+            });
         };
     }, [sessionId, isActive]);
 
@@ -63,67 +81,96 @@ const AIInsightsPanel = ({
         if (insightsEndRef.current) {
             insightsEndRef.current.scrollIntoView({ behavior: 'smooth' });
         }
-    }, [realTimeInsights]);
-
-    // Initialize AI connection with retry logic
+    }, [realTimeInsights]);    // Initialize AI connection with retry logic
     const initializeAIConnection = async () => {
         try {
             setConnectionStatus('connecting');
             setError(null);
 
-            await AIService.initializeRealTimeConnection(
-                sessionId,
-                handleRealTimeInsight,
-                handleConnectionError
-            );
+            // First subscribe to the AI service events
+            AIService.subscribe('any_insight', handleRealTimeInsight);
+            AIService.subscribe('connection_error', handleConnectionError);
 
-            setConnectionStatus('connected');
-            connectionRetryCount.current = 0;
+            // Connect to WebSocket
+            const result = await AIService.connectWebSocket({
+                session_id: sessionId,
+                child_id: childId
+            });
 
-            // Start initial analysis
-            await performInitialAnalysis();
+            if (result.success && result.connected) {
+                setConnectionStatus('connected');
+                connectionRetryCount.current = 0;
+
+                // Start initial analysis
+                await performInitialAnalysis();
+            } else {
+                throw new Error(result.error || 'Failed to connect to AI service');
+            }
 
         } catch (error) {
             console.error('Failed to initialize AI connection:', error);
             handleConnectionError(error);
         }
-    };
-
-    // Handle real-time insights from WebSocket
+    };    // Handle real-time insights from WebSocket
     const handleRealTimeInsight = (insight) => {
+        // Our AIService.js now sends us normalized insight data
+        // If it's the "any_insight" subscription, the data format is different
+        let insightType, insightData, insightTimestamp;
+
+        if (insight.type) {
+            // This is from the "any_insight" event
+            insightType = insight.type;
+            insightData = insight.data;
+            insightTimestamp = insight.timestamp || new Date().toISOString();
+        } else {
+            // Direct data from emotion_insight, behavior_insight, etc. events
+            insightType = 'unknown';
+            insightData = insight;
+            insightTimestamp = new Date().toISOString();
+
+            // Try to determine the type from the data structure
+            if (insight.primary_emotion) insightType = 'emotion';
+            else if (insight.engagement_level) insightType = 'behavior';
+            else if (insight.suggestion || insight.recommendations) insightType = 'recommendation';
+            else if (insight.milestone || insight.progress) insightType = 'progress';
+        }
+
         const formattedInsight = {
             id: `insight_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-            timestamp: insight.timestamp || new Date().toISOString(),
-            type: insight.type,
-            data: insight.data,
-            confidence: insight.confidence || 0.8,
-            urgency: determineUrgency(insight)
+            timestamp: insightTimestamp,
+            type: insightType,
+            data: insightData,
+            confidence: insightData?.confidence || 0.8,
+            urgency: determineUrgency({ type: insightType, data: insightData })
         };
 
         setRealTimeInsights(prev => [...prev, formattedInsight]);
 
         // Update specific analysis based on insight type
-        switch (insight.type) {
+        switch (insightType) {
             case 'emotion':
-                updateEmotionalAnalysis(insight.data);
+                updateEmotionalAnalysis(insightData);
                 break;
             case 'behavior':
-                updateBehavioralAnalysis(insight.data);
+                updateBehavioralAnalysis(insightData);
                 break;
             case 'recommendation':
-                updateRecommendations(insight.data);
+                updateRecommendations(insightData);
                 break;
             case 'progress':
-                updateProgressAnalysis(insight.data);
+                updateProgressAnalysis(insightData);
                 break;
         }
-    };
+    };    // Handle connection errors with retry logic
+    const handleConnectionError = (errorData) => {
+        // errorData might be an error object or a structured error from AIService
+        const errorMessage = errorData.message ||
+            (typeof errorData === 'object' && errorData.error) ||
+            'Connection failed';
 
-    // Handle connection errors with retry logic
-    const handleConnectionError = (error) => {
-        console.error('AI Connection Error:', error);
+        console.error('AI Connection Error:', errorMessage);
         setConnectionStatus('error');
-        setError(error.message || 'Connection failed');
+        setError(errorMessage);
 
         if (connectionRetryCount.current < maxRetries) {
             connectionRetryCount.current++;
@@ -132,23 +179,24 @@ const AIInsightsPanel = ({
                 initializeAIConnection();
             }, 3000 * connectionRetryCount.current);
         }
-    };
-
-    // Perform initial comprehensive analysis
+    };    // Perform initial comprehensive analysis
     const performInitialAnalysis = async () => {
         if (!sessionData || Object.keys(sessionData).length === 0) return;
 
         setIsLoading(true);
 
-        try {            // Parallel execution of multiple analyses
+        try {
+            // Parallel execution of multiple analyses
             const [
                 emotionalResult,
                 behavioralResult,
-                recommendationsResult
+                recommendationsResult,
+                progressResult
             ] = await Promise.allSettled([
                 AIService.analyzeEmotionalPatterns(sessionData.emotions || {}),
                 AIService.analyzeBehavioralPatterns(sessionData.behaviors || {}),
-                AIService.generateRecommendations(sessionData, { child_id: childId })
+                AIService.generateRecommendations(sessionData, { child_id: childId }),
+                childId ? AIService.analyzeProgress([sessionData], childId) : Promise.resolve({ success: false })
             ]);
 
             // Process results
@@ -164,24 +212,30 @@ const AIInsightsPanel = ({
                 setRecommendations(recommendationsResult.value);
             }
 
+            if (progressResult.status === 'fulfilled' && progressResult.value.success) {
+                setProgressAnalysis(progressResult.value);
+            }
+
         } catch (error) {
             console.error('Initial analysis failed:', error);
             setError('Analysis failed: ' + error.message);
         } finally {
             setIsLoading(false);
         }
-    };
-
-    // Check AI service health
+    };// Check AI service health
     const checkAIServiceHealth = async () => {
         try {
             const health = await AIService.checkHealth();
-            setAiServiceHealth(health);
+            if (health && typeof health === 'object') {
+                setAiServiceHealth(health);
+            } else {
+                throw new Error('Invalid health status returned');
+            }
         } catch (error) {
             setAiServiceHealth({
                 success: false,
                 status: 'unhealthy',
-                error: error.message
+                error: error.message || 'Unable to connect to AI service'
             });
         }
     };
@@ -386,9 +440,7 @@ const AIInsightsPanel = ({
                 </div>
             )}
         </div>
-    );
-
-    const renderTabNavigation = () => (
+    ); const renderTabNavigation = () => (
         <div className="border-b border-gray-200 mb-4">
             <nav className="-mb-px flex space-x-8">
                 {[
@@ -401,12 +453,16 @@ const AIInsightsPanel = ({
                         key={id}
                         onClick={() => setActiveTab(id)}
                         className={`py-2 px-1 border-b-2 font-medium text-sm flex items-center gap-2 ${activeTab === id
-                            ? 'border-blue-500 text-blue-600'
-                            : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                                ? 'border-blue-500 text-blue-600'
+                                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
                             }`}
+                        disabled={connectionStatus === 'connecting'}
                     >
                         <Icon className="w-4 h-4" />
                         {label}
+                        {connectionStatus === 'connecting' && id !== 'realtime' && (
+                            <span className="ml-1 text-xs text-yellow-500">(Loading...)</span>
+                        )}
                     </button>
                 ))}
             </nav>
@@ -415,34 +471,33 @@ const AIInsightsPanel = ({
 
     // Main render
     return (
-        <div className="bg-white rounded-lg shadow-lg p-6">
-            <div className="flex items-center justify-between mb-6">
-                <h2 className="text-xl font-bold text-gray-900 flex items-center gap-3">
-                    <Brain className="w-6 h-6 text-blue-500" />
-                    AI Insights Panel
-                </h2>
+        <div className="bg-white rounded-lg shadow-lg p-6">            <div className="flex items-center justify-between mb-6">
+            <h2 className="text-xl font-bold text-gray-900 flex items-center gap-3">
+                <Brain className="w-6 h-6 text-blue-500" />
+                AI Insights Panel {connectionStatus === 'connected' && <span className="text-xs text-green-500 ml-2">(Live)</span>}
+            </h2>
 
-                <div className="flex items-center gap-3">
-                    {/* AI Service Health Indicator */}
-                    <div className="flex items-center gap-2">
-                        <div className={`w-2 h-2 rounded-full ${aiServiceHealth.success ? 'bg-green-500' : 'bg-red-500'
-                            }`} />
-                        <span className="text-xs text-gray-600">
-                            AI Service {aiServiceHealth.success ? 'Online' : 'Offline'}
-                        </span>
-                    </div>
-
-                    {/* Refresh Button */}
-                    <button
-                        onClick={refreshAnalysis}
-                        disabled={isLoading}
-                        className="p-2 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
-                        title="Refresh Analysis"
-                    >
-                        <RefreshCw className={`w-4 h-4 ${isLoading ? 'animate-spin' : ''}`} />
-                    </button>
+            <div className="flex items-center gap-3">
+                {/* AI Service Health Indicator */}
+                <div className="flex items-center gap-2">
+                    <div className={`w-2 h-2 rounded-full ${aiServiceHealth.success ? 'bg-green-500' : 'bg-red-500'
+                        }`} />
+                    <span className="text-xs text-gray-600">
+                        AI Service {aiServiceHealth.success ? 'Online' : 'Offline'}
+                    </span>
                 </div>
+
+                {/* Refresh Button */}
+                <button
+                    onClick={refreshAnalysis}
+                    disabled={isLoading}
+                    className="p-2 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                    title="Refresh Analysis"
+                >
+                    <RefreshCw className={`w-4 h-4 ${isLoading ? 'animate-spin' : ''}`} />
+                </button>
             </div>
+        </div>
 
             {error && (
                 <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg">

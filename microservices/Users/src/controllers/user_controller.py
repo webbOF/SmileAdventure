@@ -3,10 +3,12 @@ from typing import Dict, List, Optional
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 from src.db.session import get_db
-from src.models.user_model import (ProfessionalCreate, ProfessionalInDB,
-                                   ProfessionalUpdate, SpecialtyCreate,
-                                   SpecialtyInDB, SpecialtyUpdate, UserCreate,
-                                   UserInDB, UserUpdate)
+from src.models.user_model import (ChildCreate, ChildInDB, ChildUpdate,
+                                   ProfessionalCreate, ProfessionalInDB,
+                                   ProfessionalUpdate, SensoryProfileCreate,
+                                   SensoryProfileInDB, SensoryProfileUpdate,
+                                   SpecialtyCreate, SpecialtyInDB, SpecialtyUpdate,
+                                   UserCreate, UserInDB, UserUpdate)
 from src.services import user_service
 
 router = APIRouter()
@@ -43,10 +45,76 @@ def read_users(
         if db_user is None:
             raise HTTPException(status_code=404, detail="User not found")
         return [db_user]  # Return as list to match the response model
-    
-    # Otherwise return list of users
+      # Otherwise return list of users
     users = user_service.get_users(db, skip=skip, limit=limit, user_type=user_type)
     return users
+
+# Children endpoints (must be before /users/{user_id} to avoid route conflicts)
+@router.post("/users/children", response_model=ChildInDB)
+def create_child(child: ChildCreate, db: Session = Depends(get_db)):
+    """Create a new child profile."""
+    # Verify that the parent exists
+    parent = user_service.get_user(db, child.parent_id)
+    if not parent:
+        raise HTTPException(status_code=404, detail="Parent user not found")
+    
+    return user_service.create_child(db=db, child_data=child)
+
+@router.get("/users/children", response_model=List[ChildInDB])
+def read_children(
+    skip: int = Query(0), 
+    limit: int = Query(100),
+    parent_id: Optional[int] = Query(None),
+    db: Session = Depends(get_db)
+):
+    """Get list of children. If parent_id is provided, filter by parent."""
+    if parent_id:
+        return user_service.get_children_by_parent(db, parent_id=parent_id, skip=skip, limit=limit)
+    else:
+        return user_service.get_children(db, skip=skip, limit=limit)
+
+@router.get("/users/children/my", response_model=List[ChildInDB])
+def read_my_children(
+    skip: int = Query(0), 
+    limit: int = Query(100),
+    db: Session = Depends(get_db)
+):
+    """Get children for the current authenticated user (to be implemented with JWT)."""
+    # This will need JWT implementation to get current user ID
+    # For now, return empty list or require parent_id parameter
+    return []
+
+@router.get("/users/children/{child_id}", response_model=ChildInDB)
+def read_child(child_id: int, db: Session = Depends(get_db)):
+    """Get a specific child by ID."""
+    child = user_service.get_child(db, child_id=child_id)
+    if not child:
+        raise HTTPException(status_code=404, detail="Child not found")
+    return child
+
+@router.put("/users/children/{child_id}", response_model=ChildInDB)
+def update_child(child_id: int, child_update: ChildUpdate, db: Session = Depends(get_db)):
+    """Update a child's information."""
+    updated_child = user_service.update_child(db, child_id=child_id, child_data=child_update)
+    if not updated_child:
+        raise HTTPException(status_code=404, detail="Child not found")
+    return updated_child
+
+@router.delete("/users/children/{child_id}")
+def delete_child(child_id: int, db: Session = Depends(get_db)):
+    """Delete a child."""
+    success = user_service.delete_child(db, child_id=child_id)
+    if not success:
+        raise HTTPException(status_code=404, detail="Child not found")
+    return {"message": "Child deleted successfully"}
+
+@router.get("/users/children/{child_id}/clinical", response_model=ChildInDB)
+def get_child_clinical_view(child_id: int, db: Session = Depends(get_db)):
+    """Get clinical view of a child (for professionals)."""
+    child = user_service.get_child(db, child_id=child_id)
+    if not child:
+        raise HTTPException(status_code=404, detail="Child not found")
+    return child
 
 @router.get("/users/{user_id}", response_model=UserInDB)
 def read_user(user_id: int, db: Session = Depends(get_db)):
@@ -211,7 +279,73 @@ def sync_user_from_auth(
         user_type=user_type,
         password="auth_service_managed"  # Placeholder since Auth service manages authentication
     )
-    
-    # Create user with specific ID from Auth service
+      # Create user with specific ID from Auth service
     created_user = user_service.create_user_with_id(db, user_data=user_data, user_id=user_id)
     return created_user
+
+# Sensory Profile endpoints
+@router.post("/users/sensory-profiles", response_model=SensoryProfileInDB)
+def create_sensory_profile(sensory_profile: SensoryProfileCreate, db: Session = Depends(get_db)):
+    """Create a new sensory profile for a child."""
+    # Verify that the child exists
+    child = user_service.get_child(db, sensory_profile.child_id)
+    if not child:
+        raise HTTPException(status_code=404, detail="Child not found")
+    
+    # Check if child already has a sensory profile
+    existing_profile = user_service.get_sensory_profile_by_child(db, sensory_profile.child_id)
+    if existing_profile:
+        raise HTTPException(status_code=400, detail="Child already has a sensory profile")
+    
+    return user_service.create_sensory_profile(db=db, sensory_profile_data=sensory_profile)
+
+@router.get("/users/sensory-profiles", response_model=List[SensoryProfileInDB])
+def read_sensory_profiles(
+    skip: int = Query(0), 
+    limit: int = Query(100),
+    child_id: Optional[int] = Query(None),
+    db: Session = Depends(get_db)
+):
+    """Get list of sensory profiles. If child_id is provided, filter by child."""
+    if child_id:
+        profile = user_service.get_sensory_profile_by_child(db, child_id=child_id)
+        return [profile] if profile else []
+    else:
+        return user_service.get_sensory_profiles(db, skip=skip, limit=limit)
+
+@router.get("/users/sensory-profiles/{profile_id}", response_model=SensoryProfileInDB)
+def read_sensory_profile(profile_id: int, db: Session = Depends(get_db)):
+    """Get a specific sensory profile by ID."""
+    profile = user_service.get_sensory_profile(db, sensory_profile_id=profile_id)
+    if not profile:
+        raise HTTPException(status_code=404, detail="Sensory profile not found")
+    return profile
+
+@router.put("/users/sensory-profiles/{profile_id}", response_model=SensoryProfileInDB)
+def update_sensory_profile(profile_id: int, profile_update: SensoryProfileUpdate, db: Session = Depends(get_db)):
+    """Update a sensory profile."""
+    updated_profile = user_service.update_sensory_profile(db, sensory_profile_id=profile_id, sensory_profile_data=profile_update)
+    if not updated_profile:
+        raise HTTPException(status_code=404, detail="Sensory profile not found")
+    return updated_profile
+
+@router.delete("/users/sensory-profiles/{profile_id}")
+def delete_sensory_profile(profile_id: int, db: Session = Depends(get_db)):
+    """Delete a sensory profile."""
+    success = user_service.delete_sensory_profile(db, sensory_profile_id=profile_id)
+    if not success:
+        raise HTTPException(status_code=404, detail="Sensory profile not found")
+    return {"message": "Sensory profile deleted successfully"}
+
+@router.get("/users/children/{child_id}/sensory-profile", response_model=SensoryProfileInDB)
+def get_child_sensory_profile(child_id: int, db: Session = Depends(get_db)):
+    """Get sensory profile for a specific child."""
+    # Verify child exists
+    child = user_service.get_child(db, child_id=child_id)
+    if not child:
+        raise HTTPException(status_code=404, detail="Child not found")
+    
+    profile = user_service.get_sensory_profile_by_child(db, child_id=child_id)
+    if not profile:
+        raise HTTPException(status_code=404, detail="Sensory profile not found for this child")
+    return profile
