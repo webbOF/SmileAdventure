@@ -139,7 +139,7 @@ async def search_professionals(
             params["min_rating"] = min_rating
             
         async with httpx.AsyncClient() as client:
-            search_url = f"{USERS_SERVICE_URL}/users/professionals/search"
+            search_url = f"{USERS_SERVICE_URL}/professionals/search"
             response = await client.get(search_url, params=params, timeout=10.0)
             response.raise_for_status()
             return response.json()
@@ -162,7 +162,7 @@ async def create_child(
     """Create a new child for the current user."""
     try:
         async with httpx.AsyncClient() as client:
-            children_url = f"{USERS_SERVICE_URL}/users/children"
+            children_url = f"{USERS_SERVICE_URL}/children"
             response = await client.post(children_url, json=child_data, timeout=10.0)
             response.raise_for_status()
             return response.json()
@@ -183,7 +183,7 @@ async def get_my_children(
     """Get children for the current user."""
     try:
         async with httpx.AsyncClient() as client:
-            children_url = f"{USERS_SERVICE_URL}/users/children/my"
+            children_url = f"{USERS_SERVICE_URL}/children/my"
             response = await client.get(children_url, timeout=10.0)
             response.raise_for_status()
             return response.json()
@@ -205,7 +205,7 @@ async def get_child(
     """Get a specific child by ID."""
     try:
         async with httpx.AsyncClient() as client:
-            child_url = f"{USERS_SERVICE_URL}/users/children/{child_id}"
+            child_url = f"{USERS_SERVICE_URL}/children/{child_id}"
             response = await client.get(child_url, timeout=10.0)
             response.raise_for_status()
             return response.json()
@@ -228,7 +228,7 @@ async def update_child(
     """Update a child's information."""
     try:
         async with httpx.AsyncClient() as client:
-            child_url = f"{USERS_SERVICE_URL}/users/children/{child_id}"
+            child_url = f"{USERS_SERVICE_URL}/children/{child_id}"
             response = await client.put(child_url, json=child_data, timeout=10.0)
             response.raise_for_status()
             return response.json()
@@ -250,7 +250,7 @@ async def delete_child(
     """Delete a child."""
     try:
         async with httpx.AsyncClient() as client:
-            child_url = f"{USERS_SERVICE_URL}/users/children/{child_id}"
+            child_url = f"{USERS_SERVICE_URL}/children/{child_id}"
             response = await client.delete(child_url, timeout=10.0)
             response.raise_for_status()
             return response.json()
@@ -272,7 +272,7 @@ async def get_child_clinical_view(
     """Get clinical view of a child (for professionals)."""
     try:
         async with httpx.AsyncClient() as client:
-            clinical_url = f"{USERS_SERVICE_URL}/users/children/{child_id}/clinical"
+            clinical_url = f"{USERS_SERVICE_URL}/children/{child_id}/clinical"
             response = await client.get(clinical_url, timeout=10.0)
             response.raise_for_status()
             return response.json()
@@ -293,7 +293,7 @@ async def get_all_children(
     """Get all children (admin/professional access)."""
     try:
         async with httpx.AsyncClient() as client:
-            children_url = f"{USERS_SERVICE_URL}/users/children"
+            children_url = f"{USERS_SERVICE_URL}/children"
             response = await client.get(children_url, timeout=10.0)
             response.raise_for_status()
             return response.json()
@@ -316,7 +316,7 @@ async def create_sensory_profile(
     """Create a new sensory profile for a child."""
     try:
         async with httpx.AsyncClient() as client:
-            sensory_profiles_url = f"{USERS_SERVICE_URL}/users/sensory-profiles"
+            sensory_profiles_url = f"{USERS_SERVICE_URL}/sensory-profiles"
             response = await client.post(sensory_profiles_url, json=sensory_profile_data, timeout=10.0)
             response.raise_for_status()
             return response.json()
@@ -344,7 +344,7 @@ async def get_sensory_profiles(
             params["child_id"] = child_id
             
         async with httpx.AsyncClient() as client:
-            sensory_profiles_url = f"{USERS_SERVICE_URL}/users/sensory-profiles"
+            sensory_profiles_url = f"{USERS_SERVICE_URL}/sensory-profiles"
             response = await client.get(sensory_profiles_url, params=params, timeout=10.0)
             response.raise_for_status()
             return response.json()
@@ -366,7 +366,7 @@ async def get_sensory_profile(
     """Get a specific sensory profile."""
     try:
         async with httpx.AsyncClient() as client:
-            sensory_profile_url = f"{USERS_SERVICE_URL}/users/sensory-profiles/{profile_id}"
+            sensory_profile_url = f"{USERS_SERVICE_URL}/sensory-profiles/{profile_id}"
             response = await client.get(sensory_profile_url, timeout=10.0)
             response.raise_for_status()
             return response.json()
@@ -389,7 +389,7 @@ async def update_sensory_profile(
     """Update a sensory profile."""
     try:
         async with httpx.AsyncClient() as client:
-            sensory_profile_url = f"{USERS_SERVICE_URL}/users/sensory-profiles/{profile_id}"
+            sensory_profile_url = f"{USERS_SERVICE_URL}/sensory-profiles/{profile_id}"
             response = await client.put(sensory_profile_url, json=sensory_profile_data, timeout=10.0)
             response.raise_for_status()
             return response.json()
@@ -411,7 +411,7 @@ async def delete_sensory_profile(
     """Delete a sensory profile."""
     try:
         async with httpx.AsyncClient() as client:
-            sensory_profile_url = f"{USERS_SERVICE_URL}/users/sensory-profiles/{profile_id}"
+            sensory_profile_url = f"{USERS_SERVICE_URL}/sensory-profiles/{profile_id}"
             response = await client.delete(sensory_profile_url, timeout=10.0)
             response.raise_for_status()
             return response.json()
@@ -433,7 +433,7 @@ async def get_child_sensory_profile(
     """Get sensory profile for a specific child."""
     try:
         async with httpx.AsyncClient() as client:
-            sensory_profile_url = f"{USERS_SERVICE_URL}/users/children/{child_id}/sensory-profile"
+            sensory_profile_url = f"{USERS_SERVICE_URL}/children/{child_id}/sensory-profile"
             response = await client.get(sensory_profile_url, timeout=10.0)
             response.raise_for_status()
             return response.json()
@@ -459,7 +459,7 @@ async def create_child_sensory_profile(
         sensory_profile_data['child_id'] = child_id
         
         async with httpx.AsyncClient() as client:
-            sensory_profiles_url = f"{USERS_SERVICE_URL}/users/sensory-profiles"
+            sensory_profiles_url = f"{USERS_SERVICE_URL}/sensory-profiles"
             response = await client.post(sensory_profiles_url, json=sensory_profile_data, timeout=10.0)
             response.raise_for_status()
             return response.json()
