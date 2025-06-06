@@ -1,3 +1,0 @@
-id,name,surname,birth_date,diagnosis,parent_id,sensory_preferences,communication_preferences,behavioral_notes,support_level,is_active,created_at,updated_at
-1,TestChild,User,2016-05-15,ASD Level 1,9,,,Responds well to structured activities,1,True,2025-06-04 10:48:53.133960,2025-06-04 10:48:53.133963
-2,TestChild,User,2016-05-15,ASD Level 1,10,,,Responds well to structured activities,1,True,2025-06-04 10:50:53.245021,2025-06-04 10:50:53.245023

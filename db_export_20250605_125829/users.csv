@@ -1,8 +1,0 @@
-id,email,hashed_password,user_type,name,surname,gender,birth_date,phone,address,city,postal_code,country,profile_image,is_verified,is_active,created_at,updated_at,bio,experience_years,rating,review_count
-2,debug_test_1748693890@test.com,$2b$12$S13MmCwn4SMh5yS4fGO2ZeiH/5DxfemWodJ5I.HuzQpDU72VAvXR6,child,Debug Test User,,,,,,,,Italia,,False,True,2025-05-31 12:18:11.286923,2025-05-31 12:18:11.286926,,,,0
-4,profile_debug_1748694185@test.com,$2b$12$2hQWqi5RJTeZw78Jq0uINu544kxbfTGPX2iUd37/psjLHcOKa3NMe,child,Profile Debug User,,,,,,,,Italia,,False,True,2025-05-31 12:23:06.017476,2025-05-31 12:23:06.017479,,,,0
-7,profile_debug_1748694456@test.com,$2b$12$DT1XpMnLdsItxys6B7gq1.NmXB7vnj/FvXddy8nfmx/5t6wCj7Xae,child,Profile Debug User,,,,,,,,Italia,,False,True,2025-05-31 12:27:36.765771,2025-05-31 12:27:36.765778,,,,0
-8,final_test_1748694580@test.com,$2b$12$tpFn5at8MtSb0mAH4Q7JJOdhlMsQPLwf5WOvJsxg/YbIPWxlN6BoG,child,Final Test User,,,,,,,,Italia,,False,True,2025-05-31 12:29:41.581344,2025-05-31 12:29:41.581347,,,,0
-1,testapi@example.com,$2b$12$4ZABFlS2ZY9o4fRfjc3W7eWlToQTF/lhDvLmvOTGhFRK0uZdoDJ46,parent,API,Test,,,,,,,Italia,,False,True,2025-06-01 18:59:31.873797,2025-06-01 18:59:31.873800,,,,0
-9,testparent1749034131044413@example.com,$2b$12$RECxdWm0xjPZ.ULgpUoIlu81TK8yA.h6YAfLucGS4QOBG8nWmDfde,parent,TestParent,,,,,,,,Italia,,False,True,2025-06-04 10:48:52.638985,2025-06-04 10:48:52.638988,,,,0
-10,testparent17490342511602106@example.com,$2b$12$s3L2K0SpqaEwMlkP2Y/OQuTGpQMGmCIj5AKqamgQAM6ZU2aE7XL8C,parent,TestParent,,,,,,,,Italia,,False,True,2025-06-04 10:50:52.792683,2025-06-04 10:50:52.792686,,,,0
