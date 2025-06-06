@@ -446,3 +446,29 @@ async def get_child_sensory_profile(
         raise HTTPException(status_code=exc.response.status_code, detail=error_detail)
     except httpx.RequestError:
         raise HTTPException(status_code=503, detail=SERVICE_UNAVAILABLE_MSG)
+
+@router.post("/children/{child_id}/sensory-profile", tags=["Sensory Profiles"])
+async def create_child_sensory_profile(
+    child_id: int,
+    sensory_profile_data: Dict[str, Any],
+    current_user: Dict[str, Any] = Depends(get_current_active_user)
+):
+    """Create a sensory profile for a specific child."""
+    try:
+        # Ensure the child_id in the data matches the path parameter
+        sensory_profile_data['child_id'] = child_id
+        
+        async with httpx.AsyncClient() as client:
+            sensory_profiles_url = f"{USERS_SERVICE_URL}/users/sensory-profiles"
+            response = await client.post(sensory_profiles_url, json=sensory_profile_data, timeout=10.0)
+            response.raise_for_status()
+            return response.json()
+    except httpx.HTTPStatusError as exc:
+        error_detail = "Sensory profile creation failed"
+        try:
+            error_detail = exc.response.json().get("detail", error_detail)
+        except Exception:
+            pass
+        raise HTTPException(status_code=exc.response.status_code, detail=error_detail)
+    except httpx.RequestError:
+        raise HTTPException(status_code=503, detail=SERVICE_UNAVAILABLE_MSG)

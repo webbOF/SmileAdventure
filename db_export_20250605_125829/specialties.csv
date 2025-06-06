@@ -1,0 +1,10 @@
+id,name,description
+1,Cardiologia,Specializzazione in malattie del cuore
+2,Dermatologia,Specializzazione in malattie della pelle
+3,Ginecologia,Specializzazione in salute femminile
+4,Psicologia,Specializzazione in salute mentale
+5,Ortopedia,Specializzazione in sistema muscolo-scheletrico
+6,Neurologia,Specializzazione in sistema nervoso
+7,Oculistica,Specializzazione in vista e occhi
+8,Otorinolaringoiatria,"Specializzazione in orecchie, naso e gola"
+9,API Test Specialty,Created via API test

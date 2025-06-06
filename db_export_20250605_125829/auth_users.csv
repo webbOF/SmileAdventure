@@ -1,0 +1,11 @@
+id,name,email,hashed_password,role
+1,Integration Test User,testuser_1748692084@integration.test,$2b$12$MomovNOgpUChRvilrYfLFe31yS4N0dK653.902XdmXW4L2d.mQ9NO,student
+2,Debug Test User,debug_test_1748693890@test.com,$2b$12$P8WGFinx/gUYnQkgASMoJeDxMCfrGUFl99rOO8ELSTGdTkwECc4zC,student
+3,Integration Test User,testuser_1748694066@integration.test,$2b$12$vAXaP2UQQpcD8AS1V0WWCOpRaJO1gqndcKDCXqZb.ze6oR2nXsWRK,student
+4,Profile Debug User,profile_debug_1748694185@test.com,$2b$12$QurUiCFYGixtAMGD66sCqO40.OozsGmazK23/61vGnPzrcB7Q9lla,student
+5,Integration Test User,testuser_1748694401@integration.test,$2b$12$CLS9pykrrsZKEktGBWrH4uFclORd.PSSD2IdShRBDKkv2kYxP/si2,student
+6,Integration Test User,testuser_1748694435@integration.test,$2b$12$Am6EastyudVOICvfkRFzOemsP4ZfZ1SFdTUf7P81aONdBFhgoCIh2,student
+7,Profile Debug User,profile_debug_1748694456@test.com,$2b$12$3wS9HgsLhMvnV9ZuqVGVzOgZAq/W6pea.tiwaomPIXtz5FrGdN8au,student
+8,Final Test User,final_test_1748694580@test.com,$2b$12$.vQokdH1LxGqlsARXCC/j.agHSQaJ7yyYmDiFe7tEbNeGfpnI0XUe,student
+9,TestParent,testparent1749034131044413@example.com,$2b$12$/Y7dJajMrIZnwaFv/0X2HO2ZTHe6U1S06.PlmacgHdP881DrhP17a,parent
+10,TestParent,testparent17490342511602106@example.com,$2b$12$ukYCIw18o1uwbn4UmNqfOeZVx43NasLkEBOiW8EPQN5R/gGf0dNr.,parent

@@ -3,9 +3,11 @@
 Test script to validate Day 4 Task 4.1 endpoint fixes
 """
 
-import requests
 import json
 import time
+
+import requests
+
 
 def test_day4_endpoints():
     """Test the key endpoints that were failing in Day 4 E2E tests"""
@@ -56,9 +58,7 @@ def test_day4_endpoints():
                     return False
                     
             headers = {'Authorization': f'Bearer {token}'}
-            print(f'✅ Parent registered successfully (ID: {user_id})')
-
-            # Test POST /api/v1/users/children - THIS WAS PREVIOUSLY FAILING WITH 405
+            print(f'✅ Parent registered successfully (ID: {user_id})')            # Test POST /api/v1/users/children - THIS WAS PREVIOUSLY FAILING WITH 405
             child_data = {
                 'name': 'TestChild',
                 'surname': 'User',
@@ -67,7 +67,9 @@ def test_day4_endpoints():
                 'parent_id': user_id,
                 'behavioral_notes': 'Responds well to structured activities',
                 'support_level': 1
-            }            print('Testing children endpoint...')
+            }
+            
+            print('Testing children endpoint...')
             response = requests.post(f'{base_url}/api/v1/users/children', json=child_data, headers=headers)
             print(f'Child creation: {response.status_code}')
 
